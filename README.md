@@ -61,6 +61,25 @@ Release builds have R8 optimization enabled. A release bundle must be signed wit
 
 Before publishing, complete physical-device transition and failure testing, privacy disclosures, the foreground-service special-use policy review, and Play Console’s current data-safety declarations.
 
+### Signed GitHub releases
+
+The `Release signed F-Droid APK` GitHub Actions workflow builds, verifies, and
+publishes a developer-signed APK whenever a tag matching `v*-fdroid` is pushed.
+Configure these encrypted repository secrets before running it:
+
+- `ANDROID_KEYSTORE_BASE64`: the release keystore encoded as one-line Base64
+- `ANDROID_KEYSTORE_PASSWORD`: the keystore password
+- `ANDROID_KEY_ALIAS`: the permanent signing-key alias
+- `ANDROID_KEY_PASSWORD`: the signing-key password
+
+Keep the original keystore and passwords in secure offline backups. Losing the
+key prevents Android from accepting future updates. Never commit a keystore or
+password to this repository.
+
+Each release publishes the signed APK and a SHA-256 checksum to GitHub Releases.
+These assets can be consumed by direct-download catalogs such as OpenAPK and by
+update clients such as Obtainium.
+
 ## License
 
 Copyright (C) 2026 Dinesh K.
