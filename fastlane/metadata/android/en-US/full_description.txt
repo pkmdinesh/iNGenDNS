@@ -1,0 +1,13 @@
+iNGenDNS benchmarks DNS resolvers on the active network and helps you select a fast, reliable option.
+
+Features:
+* Measures latency, reliability, success rate, jitter, and packet loss
+* Calculates a transparent DNS health score
+* Supports managed and user-created DNS profiles
+* Automatically selects eligible resolvers scoring 70 or higher
+* Falls back to the network DNS when no resolver meets the quality threshold
+* Applies DNS through Android's local VPN interface without routing general traffic through a remote VPN
+* Stores benchmark history locally on the device
+* Includes configurable automatic checks and connection handling
+
+iNGenDNS is free and open-source software. It does not contain advertising or tracking SDKs.

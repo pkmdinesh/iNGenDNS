@@ -1,0 +1,1 @@
+Initial public release of iNGenDNS. Includes DNS benchmarking, health scoring, managed and custom profiles, automatic selection, local DNS-only VPN operation, history, settings, and FAQs.
