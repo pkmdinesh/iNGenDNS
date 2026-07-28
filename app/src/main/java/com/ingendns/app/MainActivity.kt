@@ -2,6 +2,8 @@ package com.ingendns.app
 
 import android.net.VpnService
 import android.os.Bundle
+import android.provider.Settings
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -118,6 +120,9 @@ class MainActivity : ComponentActivity() {
                     onActivateDns = ::requestDns,
                     onAutoConnectChange = ::requestAutoConnect,
                     onStopDns = { DnsVpnService.stop(this) },
+                    onOpenVpnSettings = {
+                        startActivity(Intent(Settings.ACTION_VPN_SETTINGS))
+                    },
                     onExit = { moveTaskToBack(true) }
                 )
             }

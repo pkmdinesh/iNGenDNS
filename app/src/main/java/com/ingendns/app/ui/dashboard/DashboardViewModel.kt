@@ -60,6 +60,10 @@ class DashboardViewModel(
                         vpnHostname = vpn.hostname,
                         encryptedConnected = vpn.encryptedConnected,
                         vpnConnectionFailed = vpn.connectionFailed,
+                        vpnMode = vpn.mode,
+                        vpnStatusMessage = vpn.statusMessage,
+                        vpnLockdownEnabled = vpn.lockdownEnabled,
+                        vpnAlwaysOnEnabled = vpn.alwaysOnEnabled,
                         activeDns = if (vpn.active) vpn.name ?: vpn.resolver.orEmpty() else "Automatic"
                     )
                 }

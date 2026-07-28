@@ -67,6 +67,7 @@ fun MainScreen(
     onActivateDns: (DnsServer, DnsProtocol) -> Unit,
     onAutoConnectChange: (Boolean) -> Unit,
     onStopDns: () -> Unit,
+    onOpenVpnSettings: () -> Unit,
     onExit: () -> Unit
 ) {
     var destination by remember { mutableStateOf(Destination.DASHBOARD) }
@@ -149,7 +150,8 @@ fun MainScreen(
                         autoConnectEnabled = autoConnectEnabled,
                         onAutoConnectChange = onAutoConnectChange,
                         onActivateDns = onActivateDns,
-                        onStopDns = onStopDns
+                        onStopDns = onStopDns,
+                        onOpenVpnSettings = onOpenVpnSettings
                     )
                     Destination.HISTORY -> HistoryScreen(historyViewModel)
                     Destination.SETTINGS -> SettingsScreen(

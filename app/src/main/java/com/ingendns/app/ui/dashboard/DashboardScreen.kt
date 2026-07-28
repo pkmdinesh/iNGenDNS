@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,6 +47,7 @@ import com.ingendns.app.network.Transport
 import com.ingendns.app.ui.dashboard.components.AnalyticsCard
 import com.ingendns.app.ui.dashboard.components.AnalyticsRow
 import com.ingendns.app.vpn.DnsProtocol
+import com.ingendns.app.vpn.VpnOperatingMode
 
 @Composable
 fun DashboardScreen(
@@ -52,7 +55,8 @@ fun DashboardScreen(
     autoConnectEnabled: Boolean,
     onAutoConnectChange: (Boolean) -> Unit,
     onActivateDns: (DnsServer, DnsProtocol) -> Unit,
-    onStopDns: () -> Unit
+    onStopDns: () -> Unit,
+    onOpenVpnSettings: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val systemIp = state.network.dnsServers.firstOrNull()
@@ -60,15 +64,36 @@ fun DashboardScreen(
     val activeName = if (state.vpnActive) state.activeDns else systemProfile?.name
         ?: state.network.privateDnsHostname ?: "Network DNS"
     val activeIp = if (state.vpnActive) state.vpnResolver else systemIp
-    val encryption = if (state.vpnActive) state.vpnProtocol?.name
-        else if (state.network.privateDnsActive) "DOT" else "Unencrypted"
+    val encryption = when {
+        state.vpnActive && state.vpnMode == VpnOperatingMode.WIFI_NETWORK_DNS -> "Unencrypted"
+        state.vpnActive -> state.vpnProtocol?.name ?: "Unknown"
+        state.network.privateDnsActive -> "DOT"
+        else -> "Unencrypted"
+    }
     val connectionStatus = if (state.vpnActive) {
         when {
-            state.encryptedConnected -> "Connected"
+            state.encryptedConnected || !state.vpnConnectionFailed -> "Connected"
             state.vpnConnectionFailed -> "Failed"
             else -> "Connecting"
         }
     } else if (state.network.hasInternet) "Connected" else "Disconnected"
+    val vpnModeText = when (state.vpnMode) {
+        VpnOperatingMode.CELLULAR_OPTIMIZED -> "Cellular optimized"
+        VpnOperatingMode.WIFI_NETWORK_DNS -> "Wi-Fi network DNS"
+        VpnOperatingMode.WAITING_FOR_NETWORK -> state.vpnStatusMessage
+        VpnOperatingMode.INACTIVE -> "Inactive"
+    }
+
+    if (state.vpnLockdownEnabled && state.vpnConnectionFailed) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("VPN lockdown is blocking connectivity") },
+            text = { Text(state.vpnStatusMessage) },
+            confirmButton = {
+                TextButton(onClick = onOpenVpnSettings) { Text("Open VPN Settings") }
+            }
+        )
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
@@ -150,6 +175,12 @@ fun DashboardScreen(
                         "Connection",
                         if (encryption == "Unencrypted") "Unencrypted" else "Encrypted ($encryption)",
                         if (encryption == "Unencrypted") Color(0xFFF57C00) else Color(0xFF2E7D32)
+                    )
+                    Text(
+                        text = "VPN mode: $vpnModeText",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (state.vpnConnectionFailed) Color.Red
+                            else MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -251,8 +282,12 @@ fun DashboardScreen(
                 ) { Text(if (state.testing) "Testing…" else "Benchmark") }
 
                 if (state.vpnActive) {
-                    OutlinedButton(onClick = onStopDns, modifier = Modifier.weight(1f)) {
-                        Text("Stop DNS")
+                    OutlinedButton(
+                        onClick = onStopDns,
+                        enabled = !state.vpnAlwaysOnEnabled,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(if (state.vpnAlwaysOnEnabled) "Always-on" else "Stop DNS")
                     }
                 } else {
                     Button(

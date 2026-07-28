@@ -5,6 +5,8 @@ import com.ingendns.app.util.Constants
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.InetSocketAddress
+import java.net.DatagramPacket
+import java.net.DatagramSocket
 import java.net.Socket
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
@@ -84,6 +86,23 @@ class DnsForwarder {
     }
 
     fun close() = closeDot()
+
+    fun sendPlain(
+        dnsIp: String,
+        request: ByteArray,
+        protectSocket: (DatagramSocket) -> Boolean
+    ): ByteArray? = runCatching {
+        DatagramSocket().use { socket ->
+            protectSocket(socket)
+            socket.soTimeout = Constants.DNS_TIMEOUT_MS
+            socket.connect(InetSocketAddress(dnsIp, Constants.DNS_PORT))
+            socket.send(DatagramPacket(request, request.size))
+            val response = ByteArray(4_096)
+            val packet = DatagramPacket(response, response.size)
+            socket.receive(packet)
+            response.copyOf(packet.length)
+        }
+    }.onFailure { Log.e("iNGenDNS", "Network DNS forwarding failed", it) }.getOrNull()
 
     private fun closeDot() {
         runCatching { dotSocket?.close() }

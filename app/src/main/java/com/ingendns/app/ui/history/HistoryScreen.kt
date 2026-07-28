@@ -126,6 +126,7 @@ private fun HistorySelectors(
 ) {
     var dateMenuExpanded by remember { mutableStateOf(false) }
     var sessionMenuExpanded by remember { mutableStateOf(false) }
+    val selectedSession = sessions.firstOrNull { it.id == selectedSessionId }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(
@@ -161,7 +162,7 @@ private fun HistorySelectors(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    "Session ID: ${selectedSessionId?.let(::shortSessionId) ?: "Select session"}",
+                    "Session: ${selectedSession?.let { sessionTimeLabel(it.timestamp) } ?: "Select session"}",
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -172,7 +173,7 @@ private fun HistorySelectors(
             ) {
                 sessions.forEachIndexed { index, session ->
                     DropdownMenuItem(
-                        text = { Text("Session ${index + 1} · ${shortSessionId(session.id)}") },
+                        text = { Text("Session ${index + 1} · ${sessionTimeLabel(session.timestamp)}") },
                         onClick = {
                             onSessionSelected(session.id)
                             sessionMenuExpanded = false
@@ -195,7 +196,7 @@ private fun HistorySessionCard(session: HistorySession) {
                 fontWeight = FontWeight.Bold
             )
             Text(
-                "Session ID: ${session.id}",
+                "Benchmark time: ${sessionTimeLabel(session.timestamp)}",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
                 maxLines = 1,
@@ -281,8 +282,10 @@ private fun dateLabel(date: LocalDate): String {
     return if (relative == null) formatted else "$relative · $formatted"
 }
 
-private fun shortSessionId(id: String): String =
-    if (id.length <= 12) id else "${id.take(12)}…"
+private fun sessionTimeLabel(timestamp: Long): String =
+    Instant.ofEpochMilli(timestamp)
+        .atZone(ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofPattern("hh:mm:ss a", Locale.getDefault()))
 
 private data class HistorySession(
     val id: String,

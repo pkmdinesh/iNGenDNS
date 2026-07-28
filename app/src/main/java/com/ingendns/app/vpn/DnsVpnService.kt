@@ -13,6 +13,7 @@ import android.net.VpnService
 import android.os.IBinder
 import android.os.Handler
 import android.os.Looper
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.ingendns.app.R
 import com.ingendns.app.di.AppContainer
@@ -26,6 +27,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.net.Inet4Address
 import kotlin.concurrent.thread
 
 /** Local, DNS-only IPv4 UDP forwarder. All non-DNS traffic remains on the underlying network. */
@@ -43,6 +45,8 @@ class DnsVpnService : VpnService() {
     private var failoverRunnable: Runnable? = null
     private var connectionWatchdogRunnable: Runnable? = null
     private var failoverInProgress = false
+    private var activeMode = VpnOperatingMode.INACTIVE
+    private var activeResolver: String? = null
     private val failedResolvers = linkedSetOf<String>()
     private val connectivity by lazy { getSystemService(ConnectivityManager::class.java) }
     private val configurationStore by lazy { VpnConfigurationStore(applicationContext) }
@@ -80,11 +84,35 @@ class DnsVpnService : VpnService() {
     }
 
     private fun updateForActiveNetwork() {
-        if (isCellular()) {
-            openTunnel()
-        } else {
-            closeTunnel("Wi-Fi, unvalidated, or no network active")
-            stopSelf()
+        val network = connectivity.activeNetwork
+        val caps = network?.let(connectivity::getNetworkCapabilities)
+        when {
+            caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true &&
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ->
+                openTunnel(
+                    resolver,
+                    resolverName,
+                    protocol,
+                    endpoint,
+                    VpnOperatingMode.CELLULAR_OPTIMIZED
+                )
+            caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true &&
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                val networkDns = connectivity.getLinkProperties(network)?.dnsServers
+                    ?.filterIsInstance<Inet4Address>()?.firstOrNull()?.hostAddress
+                if (networkDns != null) {
+                    openTunnel(
+                        networkDns,
+                        "Network DNS",
+                        null,
+                        null,
+                        VpnOperatingMode.WIFI_NETWORK_DNS
+                    )
+                } else {
+                    waitForNetwork("Wi-Fi did not provide a compatible DNS server")
+                }
+            }
+            else -> waitForNetwork("Waiting for a validated network")
         }
     }
 
@@ -97,40 +125,63 @@ class DnsVpnService : VpnService() {
         } == true
 
     @Synchronized
-    private fun openTunnel() {
-        if (vpnInterface != null || !isCellular()) return
+    private fun openTunnel(
+        targetResolver: String,
+        targetName: String?,
+        targetProtocol: DnsProtocol?,
+        targetEndpoint: String?,
+        mode: VpnOperatingMode
+    ) {
+        if (vpnInterface != null && activeMode == mode && activeResolver == targetResolver) return
+        closeTunnel("Network mode changed")
         runCatching {
             vpnInterface = Builder().setSession("iNGenDNS")
-                .addAddress("10.10.0.2", 32).addDnsServer(resolver).addRoute(resolver, 32)
+                .addAddress("10.10.0.2", 32).addDnsServer(targetResolver).addRoute(targetResolver, 32)
                 .addDisallowedApplication(packageName)
                 .setMtu(Constants.VPN_MTU).setBlocking(true).establish()
             requireNotNull(vpnInterface) { "VPN interface was not established" }
-            EventLogStore(this).record("DNS VPN started", resolver)
-            DnsVpnState.tunnelStarted(resolver, resolverName, protocol, endpoint)
-            scheduleConnectionWatchdog()
-            runner = thread(name = "dns-vpn", isDaemon = true) { forwardDns(vpnInterface!!) }
+            activeMode = mode
+            activeResolver = targetResolver
+            val status = if (mode == VpnOperatingMode.CELLULAR_OPTIMIZED) {
+                "Mobile data - Optimized DNS: ${targetName ?: targetResolver}"
+            } else {
+                "Wi-Fi - Using network DNS: $targetResolver"
+            }
+            EventLogStore(this).record("DNS VPN started", status)
+            DnsVpnState.tunnelStarted(
+                targetResolver, targetName, targetProtocol, targetEndpoint,
+                mode, status, lockdownEnabled(), alwaysOnEnabled()
+            )
+            if (mode == VpnOperatingMode.CELLULAR_OPTIMIZED) scheduleConnectionWatchdog()
+            val descriptor = requireNotNull(vpnInterface)
+            runner = thread(name = "dns-vpn", isDaemon = true) {
+                forwardDns(descriptor, targetResolver, targetProtocol, targetEndpoint)
+            }
         }.onFailure {
             EventLogStore(this).record(
                 "DNS VPN failed",
                 it.message ?: "Unknown error"
             ); closeTunnel("Setup failed")
+            DnsVpnState.waiting(
+                if (lockdownEnabled()) LOCKDOWN_MESSAGE else "VPN tunnel setup failed",
+                lockdownEnabled()
+            )
         }
     }
 
-    private fun forwardDns(descriptor: android.os.ParcelFileDescriptor) {
+    private fun forwardDns(
+        descriptor: android.os.ParcelFileDescriptor,
+        targetResolver: String,
+        targetProtocol: DnsProtocol?,
+        targetEndpoint: String?
+    ) {
         val input = FileInputStream(descriptor.fileDescriptor)
         val output = FileOutputStream(descriptor.fileDescriptor)
         val buffer = ByteArray(32_767)
         var consecutiveFailures = 0
         try {
-            val verified = forwarder.sendQuery(
-                protocol,
-                resolver,
-                endpoint,
-                CONNECTION_TEST_QUERY,
-                ::protect
-            ) != null
-            if (verified) markEncryptedConnected()
+            val verified = sendQuery(targetResolver, targetProtocol, targetEndpoint, CONNECTION_TEST_QUERY) != null
+            if (verified) markConnected(targetProtocol)
             else markConnectionFailed()
 
             while (!Thread.currentThread().isInterrupted) {
@@ -146,13 +197,7 @@ class DnsVpnService : VpnService() {
                     ((packet[header + 2].toInt() and 0xff) shl 8) or (packet[header + 3].toInt() and 0xff)
                 if (destinationPort != Constants.DNS_PORT) continue
                 val payload = packet.copyOfRange(header + 8, count)
-                val response = forwarder.sendQuery(
-                    protocol,
-                    resolver,
-                    endpoint,
-                    payload,
-                    ::protect
-                )
+                val response = sendQuery(targetResolver, targetProtocol, targetEndpoint, payload)
                 if (response == null) {
                     consecutiveFailures++
                     if (consecutiveFailures >= FAILURE_THRESHOLD) {
@@ -161,10 +206,10 @@ class DnsVpnService : VpnService() {
                     continue
                 }
                 consecutiveFailures = 0
-                markEncryptedConnected()
+                markConnected(targetProtocol)
                 output.write(
                     Ipv4UdpPacketBuilder.response(
-                        sourceAddress = resolver,
+                        sourceAddress = targetResolver,
                         destinationAddress = source,
                         sourcePort = Constants.DNS_PORT,
                         destinationPort = sourcePort,
@@ -177,6 +222,22 @@ class DnsVpnService : VpnService() {
         } finally {
             input.close(); output.close()
         }
+    }
+
+    private fun markConnected(targetProtocol: DnsProtocol?) {
+        if (targetProtocol == null) DnsVpnState.networkDnsConnected()
+        else markEncryptedConnected()
+    }
+
+    private fun sendQuery(
+        targetResolver: String,
+        targetProtocol: DnsProtocol?,
+        targetEndpoint: String?,
+        request: ByteArray
+    ): ByteArray? = if (targetProtocol == null) {
+        forwarder.sendPlain(targetResolver, request, ::protect)
+    } else {
+        forwarder.sendQuery(targetProtocol, targetResolver, requireNotNull(targetEndpoint), request, ::protect)
     }
 
     @Synchronized
@@ -227,7 +288,7 @@ class DnsVpnService : VpnService() {
         }
         EventLogStore(this).record(
             "DNS failover scheduled",
-            "${resolverName ?: resolver}: retrying for 10 seconds"
+            "${resolverName ?: resolver}: switching resolver in ${FAILOVER_DELAY_MILLIS / 1_000} seconds"
         )
     }
 
@@ -286,7 +347,7 @@ class DnsVpnService : VpnService() {
                 "DNS failover exhausted",
                 "No remaining ${protocol.name} resolver is available"
             )
-            stopSelf()
+            DnsVpnState.connectionFailed()
             return
         }
         val nextEndpoint = when (protocol) {
@@ -311,8 +372,23 @@ class DnsVpnService : VpnService() {
     @Synchronized
     private fun closeTunnel(reason: String) {
         cancelConnectionWatchdog(); cancelFailover(); vpnInterface?.close(); vpnInterface = null; runner?.interrupt(); forwarder.close(); runner =
-            null; DnsVpnState.disconnected(); EventLogStore(this).record("DNS VPN stopped", reason)
+            null; activeMode = VpnOperatingMode.INACTIVE; activeResolver = null
+        DnsVpnState.disconnected(); EventLogStore(this).record("DNS VPN stopped", reason)
     }
+
+    private fun waitForNetwork(message: String) {
+        closeTunnel(message)
+        DnsVpnState.waiting(
+            if (lockdownEnabled()) LOCKDOWN_MESSAGE else message,
+            lockdownEnabled()
+        )
+    }
+
+    private fun lockdownEnabled(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && isLockdownEnabled
+
+    private fun alwaysOnEnabled(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && isAlwaysOn
 
     override fun onDestroy() {
         closeTunnel("Service stopped"); runCatching {
@@ -370,9 +446,14 @@ class DnsVpnService : VpnService() {
         private const val CHANNEL_SILENT = "ingendns_vpn_silent"
         private const val CHANNEL_VISIBLE = "ingendns_vpn_status"
         private const val NOTIFICATION_ID = Constants.VPN_NOTIFICATION_ID
-        private const val FAILURE_THRESHOLD = 3
-        private const val CONNECTION_WATCHDOG_MILLIS = 10_000L
-        private const val FAILOVER_DELAY_MILLIS = 10_000L
+        // Two failed live queries tolerate a brief packet loss without leaving users
+        // on a dead resolver for the previous 10-second grace period. This policy is
+        // shared by DoH and DoT; their individual socket timeouts remain 3 seconds.
+        private const val FAILURE_THRESHOLD = 2
+        private const val CONNECTION_WATCHDOG_MILLIS = 7_000L
+        private const val FAILOVER_DELAY_MILLIS = 2_000L
+        const val LOCKDOWN_MESSAGE =
+            "Internet is blocked because Block connections without VPN is ON. Turn it OFF in Android VPN settings, then retry."
         private val CONNECTION_TEST_QUERY = byteArrayOf(
             0x56, 0x47, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x07,

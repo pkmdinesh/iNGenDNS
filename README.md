@@ -19,7 +19,9 @@ iNGenDNS DNS Optimizer is an Android 8.0+ Kotlin application that benchmarks DNS
 
 Android does not permit normal apps to modify the system cellular DNS directly. iNGenDNS therefore uses a local, DNS-only `VpnService` after the user grants Android's VPN permission. It forwards IPv4 UDP DNS requests to the selected resolver and leaves non-DNS traffic on the underlying network.
 
-When Wi-Fi or an unvalidated network is active, the tunnel is closed and Android's automatic DNS is restored. The foreground service remains ready to reopen the DNS tunnel as soon as validated cellular connectivity returns. Explicitly stopping DNS optimization stops the service completely.
+On cellular networks, the tunnel uses the selected encrypted DNS resolver. On Wi-Fi, it stays active and forwards DNS to the DNS servers supplied by that Wi-Fi network. This hybrid behavior keeps Android's Always-on VPN active while supporting networks, such as managed office Wi-Fi, that reject external DNS resolvers.
+
+When Android's **Block connections without VPN** option prevents connectivity during tunnel reconfiguration, the dashboard explains the condition and provides a shortcut to Android's VPN settings. Explicitly stopping DNS optimization stops the service unless Android has configured iNGenDNS as the Always-on VPN.
 
 The forwarder currently supports IPv4 UDP DNS. TCP fallback and IPv6 DNS forwarding require additional implementation and device testing before a production release.
 
@@ -79,6 +81,10 @@ password to this repository.
 Each release publishes the signed APK and a SHA-256 checksum to GitHub Releases.
 These assets can be consumed by direct-download catalogs such as OpenAPK and by
 update clients such as Obtainium.
+
+The permanent public download link is:
+
+https://github.com/pkmdinesh/iNGenDNS/releases/latest
 
 ## License
 

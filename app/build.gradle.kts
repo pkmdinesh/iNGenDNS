@@ -30,8 +30,8 @@ android {
         // Android 8.0+ while still compiling and targeting the newest SDK.
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "10.1"
+        versionCode = 11
+        versionName = "11.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
