@@ -212,18 +212,20 @@
 
     .cta {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       gap: 32px;
       margin: 96px 0 70px;
       padding: clamp(30px, 5vw, 54px);
+      text-align: center;
       border-radius: 30px;
       color: #fff;
       background: linear-gradient(115deg, var(--green-deep), var(--green));
       box-shadow: 0 24px 60px rgba(8,104,56,.22);
     }
 
-    .cta h2 { max-width: 650px; font-size: clamp(1.8rem, 4vw, 3.1rem); }
+    .cta h2 { max-width: 650px; margin-inline: auto; font-size: clamp(1.8rem, 4vw, 3.1rem); }
     .cta .button { flex: 0 0 auto; color: var(--ink); background: #fff; border-color: #fff; }
 
     footer { padding: 0 0 42px; color: var(--muted); font-size: .92rem; }
@@ -243,7 +245,7 @@
       .chakra { width: 300px; }
       .features { grid-template-columns: 1fr; }
       .card { min-height: auto; }
-      .cta { align-items: flex-start; flex-direction: column; }
+      .cta { align-items: center; }
     }
 
     @media (max-width: 560px) {
