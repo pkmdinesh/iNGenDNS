@@ -45,12 +45,14 @@ jobs:
         run: |
           test -n "$ANDROID_KEYSTORE_BASE64"
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
-- name: Make Gradle wrapper executable
-  run: chmod +x gradlew
-  - name: Build signed F-Droid APK
-  run: |
-    chmod +x gradlew
-    ./gradlew --no-daemon :app:assembleFdroidRelease
+      - name: Make Gradle wrapper executable
+        shell: bash
+        run: chmod +x gradlew
+
+      - name: Build signed F-Droid APK
+        shell: bash
+        run: ./gradlew --no-daemon :app:assembleFdroidRelease
+
       - name: Verify and stage release files
         shell: bash
         run: |
