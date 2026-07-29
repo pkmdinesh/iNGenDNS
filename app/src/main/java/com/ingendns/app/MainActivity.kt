@@ -23,6 +23,7 @@ import com.ingendns.app.ui.settings.SettingsViewModel
 import com.ingendns.app.ui.settings.SettingsViewModelFactory
 import com.ingendns.app.ui.theme.InGenDNSTheme
 import com.ingendns.app.vpn.DnsVpnService
+import com.ingendns.app.vpn.DnsVpnState
 import com.ingendns.app.vpn.DnsProtocol
 import com.ingendns.app.dns.model.DnsServer
 import com.ingendns.app.workers.DnsWorkScheduler
@@ -123,6 +124,7 @@ class MainActivity : ComponentActivity() {
                     onOpenVpnSettings = {
                         startActivity(Intent(Settings.ACTION_VPN_SETTINGS))
                     },
+                    onCheckForUpdates = { distributionUpdateManager.checkForUpdate(force = true) },
                     onExit = { moveTaskToBack(true) }
                 )
             }
@@ -145,7 +147,26 @@ class MainActivity : ComponentActivity() {
         if (::distributionUpdateManager.isInitialized) {
             distributionUpdateManager.checkForUpdate()
         }
+        reconcileVpnAuthorization()
         syncAutoConnectMonitoring()
+    }
+
+    /**
+     * Android revokes VpnService consent when the user deletes this app's VPN
+     * profile. Clear UI/settings state when returning from system settings so
+     * Start DNS and Auto Connect can request fresh consent immediately.
+     */
+    private fun reconcileVpnAuthorization() {
+        if (VpnService.prepare(this) == null) return
+
+        DnsVpnState.disconnected()
+        val settings = AppSettings(applicationContext)
+        if (!settings.autoConnectEnabled) return
+
+        settingsViewModelRef?.setAutoConnectEnabled(false) ?: run {
+            settings.autoConnectEnabled = false
+            DnsWorkScheduler.cancel(applicationContext)
+        }
     }
 
     private fun requestDns(

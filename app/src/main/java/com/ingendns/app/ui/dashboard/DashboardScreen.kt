@@ -15,13 +15,16 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,6 +85,19 @@ fun DashboardScreen(
         VpnOperatingMode.WIFI_NETWORK_DNS -> "Wi-Fi network DNS"
         VpnOperatingMode.WAITING_FOR_NETWORK -> state.vpnStatusMessage
         VpnOperatingMode.INACTIVE -> "Inactive"
+    }
+    val successColor = if (isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF2E7D32)
+
+    fun selectProtocol(protocol: DnsProtocol) {
+        viewModel.setProtocol(protocol)
+        if (state.vpnActive) {
+            val activeServer = state.results.firstOrNull {
+                it.server.ip == state.vpnResolver
+            }?.server ?: state.vpnResolver?.let(DefaultDnsServers::findByIp)
+            if (activeServer?.supports(protocol) == true) {
+                onActivateDns(activeServer, protocol)
+            }
+        }
     }
 
     if (state.vpnLockdownEnabled && state.vpnConnectionFailed) {
@@ -169,12 +185,12 @@ fun DashboardScreen(
                     ColoredStatusRow(
                         "Status",
                         connectionStatus,
-                        if (connectionStatus == "Connected") Color(0xFF2E7D32) else Color.Red
+                        if (connectionStatus == "Connected") successColor else Color.Red
                     )
                     ColoredStatusRow(
                         "Connection",
                         if (encryption == "Unencrypted") "Unencrypted" else "Encrypted ($encryption)",
-                        if (encryption == "Unencrypted") Color(0xFFF57C00) else Color(0xFF2E7D32)
+                        if (encryption == "Unencrypted") Color(0xFFF57C00) else successColor
                     )
                     Text(
                         text = "VPN mode: $vpnModeText",
@@ -197,23 +213,16 @@ fun DashboardScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text("DOT", style = MaterialTheme.typography.labelMedium)
-                        Switch(
-                            checked = state.selectedProtocol == DnsProtocol.DOH,
-                            onCheckedChange = { useDoh ->
-                                val protocol = if (useDoh) DnsProtocol.DOH else DnsProtocol.DOT
-                                viewModel.setProtocol(protocol)
-                                if (state.vpnActive) {
-                                    val activeServer = state.results.firstOrNull {
-                                        it.server.ip == state.vpnResolver
-                                    }?.server ?: state.vpnResolver?.let(DefaultDnsServers::findByIp)
-                                    if (activeServer?.supports(protocol) == true) {
-                                        onActivateDns(activeServer, protocol)
-                                    }
-                                }
-                            }
+                        FilterChip(
+                            selected = state.selectedProtocol == DnsProtocol.DOT,
+                            onClick = { selectProtocol(DnsProtocol.DOT) },
+                            label = { Text("DOT") }
                         )
-                        Text("DOH", style = MaterialTheme.typography.labelMedium)
+                        FilterChip(
+                            selected = state.selectedProtocol == DnsProtocol.DOH,
+                            onClick = { selectProtocol(DnsProtocol.DOH) },
+                            label = { Text("DOH") }
+                        )
                     }
                     Text(
                         "Selected: ${state.selectedProtocol.name}",
@@ -235,36 +244,30 @@ fun DashboardScreen(
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("OFF", style = MaterialTheme.typography.labelMedium)
+                        Text(
+                            if (autoConnectEnabled) "Enabled" else "Disabled",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (autoConnectEnabled) successColor else Color(0xFFF57C00)
+                        )
                         Switch(
                             checked = autoConnectEnabled,
                             onCheckedChange = onAutoConnectChange
                         )
-                        Text("ON", style = MaterialTheme.typography.labelMedium)
                     }
-                    Text(
-                        "Status: ${if (autoConnectEnabled) "ON" else "OFF"}",
-                        modifier = Modifier.fillMaxWidth().padding(start = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (autoConnectEnabled) Color(0xFF2E7D32) else Color(0xFFF57C00),
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.End,
-                        maxLines = 1,
-                        softWrap = false
-                    )
                 }
             }
             Text(
                 text = buildAnnotatedString {
-                    withStyle(SpanStyle(color = Color.Red, fontWeight = FontWeight.Bold)) {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                         append("Note: ")
                     }
                     append("DOH may consume slightly more battery.")
                 },
                 maxLines = 2,
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.labelMedium,
+                color = Color(0xFFF57C00)
             )
         }
 
@@ -466,9 +469,24 @@ private fun NetworkTransportIcon(
 
 @Composable
 private fun ColoredStatusRow(label: String, value: String, color: Color) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         Text(label, style = MaterialTheme.typography.bodyMedium)
-        Text(value, style = MaterialTheme.typography.bodyMedium, color = color)
+        Surface(
+            color = color.copy(alpha = 0.14f),
+            contentColor = color,
+            shape = MaterialTheme.shapes.small
+        ) {
+            Text(
+                value,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }
 
@@ -499,6 +517,7 @@ private fun CompactNetworkDetailRow(label: String, value: String) {
 
 @Composable
 private fun CompactSignalRow(label: String, signal: CellularSignal?) {
+    val darkTheme = isSystemInDarkTheme()
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -518,8 +537,10 @@ private fun CompactSignalRow(label: String, signal: CellularSignal?) {
                     withStyle(
                         SpanStyle(
                             color = when (signal.quality) {
-                                "Excellent" -> Color(0xFF2E7D32)
-                                "Good" -> Color(0xFF43A047)
+                                "Excellent" -> if (darkTheme) Color(0xFF81C784)
+                                    else Color(0xFF2E7D32)
+                                "Good" -> if (darkTheme) Color(0xFFA5D6A7)
+                                    else Color(0xFF388E3C)
                                 "Fair" -> Color(0xFFF57C00)
                                 else -> Color.Red
                             },

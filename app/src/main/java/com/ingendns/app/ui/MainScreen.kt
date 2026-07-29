@@ -6,7 +6,10 @@ import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -15,10 +18,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -37,8 +43,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.ingendns.app.R
 import com.ingendns.app.ui.dashboard.DashboardScreen
 import com.ingendns.app.ui.dashboard.DashboardViewModel
 import com.ingendns.app.ui.faq.FaqScreen
@@ -68,6 +77,7 @@ fun MainScreen(
     onAutoConnectChange: (Boolean) -> Unit,
     onStopDns: () -> Unit,
     onOpenVpnSettings: () -> Unit,
+    onCheckForUpdates: () -> Unit,
     onExit: () -> Unit
 ) {
     var destination by remember { mutableStateOf(Destination.DASHBOARD) }
@@ -131,7 +141,10 @@ fun MainScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Text("☰", style = MaterialTheme.typography.headlineSmall)
+                            Icon(
+                                painter = painterResource(R.drawable.ic_menu),
+                                contentDescription = "Open navigation menu"
+                            )
                         }
                     }
                 )
@@ -159,7 +172,7 @@ fun MainScreen(
                         onAutoConnectChange
                     )
                     Destination.FAQS -> FaqScreen()
-                    Destination.ABOUT -> AboutScreen()
+                    Destination.ABOUT -> AboutScreen(onCheckForUpdates)
                     }
                 }
             }
@@ -168,18 +181,30 @@ fun MainScreen(
 }
 
 @Composable
-internal fun AboutScreen() {
+internal fun AboutScreen(onCheckForUpdates: () -> Unit) {
     val context = LocalContext.current
-    val appVersion = remember(context) { context.appVersion() }
+    val appVersionName = remember(context) { context.appVersionName() }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)
     ) {
-        Text("iNGenDNS", style = MaterialTheme.typography.titleLarge)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                painter = painterResource(R.drawable.ic_launcher_foreground_logo),
+                contentDescription = "iNGenDNS logo",
+                modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp))
+            )
+            Spacer(Modifier.widthIn(min = 12.dp))
+            Text("iNGenDNS", style = MaterialTheme.typography.titleLarge)
+        }
         Spacer(Modifier.height(16.dp))
         Text(
-            "Build Version ${appVersion.name}",
+            "App version: $appVersionName",
             style = MaterialTheme.typography.labelLarge
         )
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onCheckForUpdates) {
+            Text("Check for updates")
+        }
         Spacer(Modifier.height(20.dp))
         Text(
             "iNGenDNS analyzes DNS performance and helps you connect to a fast, reliable encrypted DNS provider using DNS over HTTPS or DNS over TLS. Optional automatic connection and failover features can help improve connection stability. Filtering features, including ad blocking, depend on the selected DNS provider.",
@@ -219,22 +244,12 @@ internal fun AboutScreen() {
     }
 }
 
-private data class AppVersion(val name: String, val build: Long)
-
-private fun Context.appVersion(): AppVersion = runCatching {
+private fun Context.appVersionName(): String = runCatching {
     val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
     } else {
         @Suppress("DEPRECATION")
         packageManager.getPackageInfo(packageName, 0)
     }
-    AppVersion(
-        name = info.versionName ?: "Unknown",
-        build = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            info.longVersionCode
-        } else {
-            @Suppress("DEPRECATION")
-            info.versionCode.toLong()
-        }
-    )
-}.getOrDefault(AppVersion("Unknown", 0))
+    info.versionName?.removeSuffix("-fdroid") ?: "Unknown"
+}.getOrDefault("Unknown")

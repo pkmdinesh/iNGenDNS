@@ -18,9 +18,10 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val repository: DnsRepository,
-    private val context: Context
+    context: Context
 ) : ViewModel() {
-    private val settings = AppSettings(context)
+    private val appContext = context.applicationContext
+    private val settings = AppSettings(appContext)
     private val benchmarkEngine = DnsBenchmarkEngine(UdpDnsProbe())
     val dnsServers = repository.observeDnsServers().stateIn(
         viewModelScope,
@@ -50,9 +51,9 @@ class SettingsViewModel(
         settings.autoConnectEnabled = enabled
         mutableAutoConnectEnabled.value = enabled
         if (enabled) {
-            DnsWorkScheduler.schedule(context, mutableReconnectInterval.value)
+            DnsWorkScheduler.schedule(appContext, mutableReconnectInterval.value)
         } else {
-            DnsWorkScheduler.cancel(context)
+            DnsWorkScheduler.cancel(appContext)
         }
     }
 
@@ -60,7 +61,7 @@ class SettingsViewModel(
         val interval = hours.coerceIn(1, 12)
         settings.autoReconnectIntervalHours = interval
         mutableReconnectInterval.value = interval
-        if (mutableAutoConnectEnabled.value) DnsWorkScheduler.ensureScheduled(context, interval)
+        if (mutableAutoConnectEnabled.value) DnsWorkScheduler.ensureScheduled(appContext, interval)
     }
 
     fun setDarkModeEnabled(enabled: Boolean) {

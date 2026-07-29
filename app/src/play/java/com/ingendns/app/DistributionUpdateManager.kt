@@ -3,6 +3,7 @@ package com.ingendns.app
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import android.widget.Toast
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
@@ -15,7 +16,7 @@ class DistributionUpdateManager(
 ) {
     private val appUpdateManager = AppUpdateManagerFactory.create(activity)
 
-    fun checkForUpdate() {
+    fun checkForUpdate(force: Boolean = false) {
         appUpdateManager.appUpdateInfo
             .addOnSuccessListener { info ->
                 val available = info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
@@ -29,8 +30,21 @@ class DistributionUpdateManager(
                             AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
                         )
                     }.onFailure { AppLogger.e("Unable to start Play update", it) }
+                } else if (force) {
+                    Toast.makeText(
+                        activity,
+                        "You are using the latest version.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
-            .addOnFailureListener { AppLogger.w("Play update check unavailable: ${it.message}") }
+            .addOnFailureListener {
+                AppLogger.w("Play update check unavailable: ${it.message}")
+                if (force) Toast.makeText(
+                    activity,
+                    "Unable to check for updates. Try again later.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
     }
 }

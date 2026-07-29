@@ -1,0 +1,1 @@
+Added hybrid Always-on VPN behavior, faster encrypted DNS failover, daily and manual update checks, improved dual-SIM and VPN-state handling, compact Dashboard analytics, expandable FAQs, clearer History sessions, compact saved profiles, and refreshed app branding. Fixed stale VPN controls, Wi-Fi labels, duplicate DNS details, and resolver state issues.

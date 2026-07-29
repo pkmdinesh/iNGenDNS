@@ -390,6 +390,17 @@ class DnsVpnService : VpnService() {
     private fun alwaysOnEnabled(): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && isAlwaysOn
 
+    override fun onRevoke() {
+        // The system calls this when the user removes this app's VPN profile or
+        // grants VPN ownership to another app. Do not leave the dashboard stuck
+        // in its previous active/Always-on state.
+        configurationStore.clear()
+        closeTunnel("VPN permission revoked")
+        DnsVpnState.disconnected()
+        stopSelf()
+        super.onRevoke()
+    }
+
     override fun onDestroy() {
         closeTunnel("Service stopped"); runCatching {
             if (callbackRegistered) connectivity.unregisterNetworkCallback(callback)

@@ -11,6 +11,7 @@ import android.telephony.CellSignalStrengthLte
 import android.telephony.CellSignalStrengthNr
 import android.telephony.PhoneStateListener
 import android.telephony.SignalStrength
+import android.telephony.SubscriptionManager
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyDisplayInfo
 import android.telephony.TelephonyManager
@@ -58,7 +59,9 @@ class NetworkMonitor(private val context: Context) {
     @Volatile
     private var latestNetworkType: Int = TelephonyManager.NETWORK_TYPE_UNKNOWN
     @Volatile
-    private var latestOverrideNetworkType: Int = TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NONE
+    // OVERRIDE_NETWORK_TYPE_NONE is an inlined zero, but referencing the API 30
+    // field directly produces an avoidable warning on our Android 8 minimum.
+    private var latestOverrideNetworkType: Int = 0
     private var started = false
     private val _state = MutableStateFlow(readState())
     val state: StateFlow<NetworkState> = _state.asStateFlow()
@@ -316,13 +319,7 @@ class NetworkMonitor(private val context: Context) {
                 // Reading the SSID requires location/Nearby Devices permission on
                 // supported Android versions. Keep network detection permission-free.
                 Transport.WIFI -> "Wi-Fi"
-                Transport.CELLULAR -> runCatching { telephonyManager.networkOperatorName }.getOrNull()
-                    ?.trim()
-                    ?.takeIf(String::isNotEmpty)
-                    ?.let { operator ->
-                        if (operator.endsWith("Internet", ignoreCase = true)) operator
-                        else "$operator Internet"
-                    }
+                Transport.CELLULAR -> activeDataProviderName()
                 Transport.NONE -> null
             },
             dnsServers = linkProperties?.dnsServers?.mapNotNull { it.hostAddress }.orEmpty(),
@@ -336,6 +333,20 @@ class NetworkMonitor(private val context: Context) {
                 null
             }
         )
+    }
+
+    private fun activeDataProviderName(): String? {
+        val subscriptionId = SubscriptionManager.getDefaultDataSubscriptionId()
+        val activeTelephonyManager = if (subscriptionId != SubscriptionManager.INVALID_SUBSCRIPTION_ID) {
+            runCatching { telephonyManager.createForSubscriptionId(subscriptionId) }
+                .getOrDefault(telephonyManager)
+        } else {
+            telephonyManager
+        }
+        val operator = runCatching { activeTelephonyManager.networkOperatorName }.getOrNull()
+            ?.takeIf { it.isNotBlank() }
+            ?: runCatching { activeTelephonyManager.simOperatorName }.getOrNull()
+        return formatMobileNetworkName(operator)
     }
 
     private fun describeConnectedNetwork(): String {
@@ -372,6 +383,14 @@ class NetworkMonitor(private val context: Context) {
     }
 
 }
+
+internal fun formatMobileNetworkName(operatorName: String?): String? = operatorName
+    ?.trim()
+    ?.takeIf(String::isNotEmpty)
+    ?.let { operator ->
+        if (operator.endsWith("Internet", ignoreCase = true)) operator
+        else "$operator Internet"
+    }
 
 @Suppress("DEPRECATION")
 internal fun describeCellularNetwork(

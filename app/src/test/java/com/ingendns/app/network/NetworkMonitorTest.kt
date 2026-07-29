@@ -6,6 +6,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class NetworkMonitorTest {
+
+    @Test
+    fun `formats the active data provider without duplicating Internet`() {
+        assertEquals("Airtel Internet", formatMobileNetworkName(" Airtel "))
+        assertEquals("Vodafone Internet", formatMobileNetworkName("Vodafone Internet"))
+        assertEquals(null, formatMobileNetworkName("  "))
+    }
     @Test
     fun `classifies 5G NSA even though base radio is LTE`() {
         assertEquals(
