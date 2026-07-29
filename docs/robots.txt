@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pkmdinesh.github.io/iNGenDNS/sitemap.xml
