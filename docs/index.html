@@ -283,7 +283,9 @@
         <h1>Smarter DNS.<br><span>Safer Android.</span></h1>
         <p class="lead">iNGenDNS benchmarks resolvers for speed and reliability, then applies your choice through a <strong>private, DNS-only local VPN</strong>.</p>
         <div class="actions">
-          <a class="button primary" href="https://github.com/pkmdinesh/iNGenDNS/releases/download/v11.1-fdroid/iNGenDNS-v11.1-fdroid.apk">Download latest APK</a>
+          <a class="button primary"
+   data-apk-download
+   href="https://github.com/pkmdinesh/iNGenDNS/releases/download/v11.1-fdroid/iNGenDNS-v11.1-fdroid.apk"> Download latest APK </a>
           <a class="button" href="https://github.com/pkmdinesh/iNGenDNS/releases/latest">View source</a>
         </div>
         <ul class="quick-facts" aria-label="App facts">
@@ -345,7 +347,9 @@
 
     <section class="cta wrap" aria-labelledby="cta-title">
       <h2 id="cta-title">Ready to find a better DNS resolver?</h2>
-      <a class="button" href="https://github.com/pkmdinesh/iNGenDNS/releases/download/v11.1-fdroid/iNGenDNS-v11.1-fdroid.apk">Get iNGenDNS</a>
+      <a class="button primary"
+   data-apk-download
+   href="https://github.com/pkmdinesh/iNGenDNS/releases/download/v11.1-fdroid/iNGenDNS-v11.1-fdroid.apk"> Get iNGenDNS </a>
     </section>
   </main>
 
@@ -356,5 +360,33 @@
       <span><a href="https://github.com/pkmdinesh/iNGenDNS/releases/latest">Latest release</a> · <a href="https://github.com/pkmdinesh/iNGenDNS">Source code</a></span>
     </div>
   </footer>
+  <script>
+  (() => {
+    const links = document.querySelectorAll("[data-apk-download]");
+
+    fetch("https://api.github.com/repos/pkmdinesh/iNGenDNS/releases/latest", {
+      headers: { Accept: "application/vnd.github+json" }
+    })
+      .then(response => {
+        if (!response.ok) throw new Error("Latest release unavailable");
+        return response.json();
+      })
+      .then(release => {
+        const apk = release.assets?.find(asset =>
+          /^iNGenDNS-v\d+(?:\.\d+)*-fdroid\.apk$/i.test(asset.name)
+        );
+
+        if (!apk?.browser_download_url) return;
+
+        links.forEach(link => {
+          link.href = apk.browser_download_url;
+          link.title = `Download ${apk.name}`;
+        });
+      })
+      .catch(() => {
+        // Existing HTML link remains the fallback.
+      });
+  })();
+</script>
 </body>
 </html>
