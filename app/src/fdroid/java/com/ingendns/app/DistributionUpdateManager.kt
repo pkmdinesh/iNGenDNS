@@ -15,35 +15,26 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import java.time.LocalDate
 
 @Suppress("UNUSED_PARAMETER")
 class DistributionUpdateManager(
     private val activity: ComponentActivity,
     updateLauncher: ActivityResultLauncher<IntentSenderRequest>
 ) {
-    private val preferences = activity.getSharedPreferences(PREFERENCES, 0)
     private var checkInProgress = false
     private var promptedVersion: String? = null
 
-    fun checkForUpdate(force: Boolean = false) {
-        val today = LocalDate.now().toEpochDay()
-        if (checkInProgress || (!force &&
-                preferences.getLong(LAST_CHECK_DAY, Long.MIN_VALUE) == today)
-        ) {
-            return
-        }
+    /** Runs only from the user-selected Check for updates action. */
+    fun checkForUpdate() {
+        if (checkInProgress) return
         checkInProgress = true
         activity.lifecycleScope.launch {
             val release = runCatching { withContext(Dispatchers.IO) { fetchLatestRelease() } }
                 .onFailure { AppLogger.w("GitHub update check unavailable: ${it.message}") }
                 .getOrNull()
-            preferences.edit()
-                .putLong(LAST_CHECK_DAY, LocalDate.now().toEpochDay())
-                .apply()
             checkInProgress = false
             if (release == null) {
-                if (force) Toast.makeText(
+                Toast.makeText(
                     activity,
                     "Unable to check for updates. Try again later.",
                     Toast.LENGTH_LONG
@@ -55,7 +46,7 @@ class DistributionUpdateManager(
             ) {
                 promptedVersion = release.version
                 showUpdatePrompt(release)
-            } else if (force) {
+            } else {
                 Toast.makeText(
                     activity,
                     "You are using the latest version.",
@@ -124,8 +115,6 @@ class DistributionUpdateManager(
     private companion object {
         const val LATEST_RELEASE_API =
             "https://api.github.com/repos/pkmdinesh/iNGenDNS/releases/latest"
-        const val PREFERENCES = "github_update_checker"
-        const val LAST_CHECK_DAY = "last_check_epoch_day"
         const val NETWORK_TIMEOUT_MS = 10_000
     }
 }

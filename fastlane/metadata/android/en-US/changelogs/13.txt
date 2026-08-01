@@ -1,0 +1,1 @@
+Removed automatic daily update checks; updates are now checked manually from About. Reduced VPN DNS packet allocations, improved reuse of successful DoH HTTPS connections, removed unnecessary response flushing, and resized the adaptive launcher logo to fit Android icon masks.

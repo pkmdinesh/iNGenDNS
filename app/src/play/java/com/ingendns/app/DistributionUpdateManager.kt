@@ -16,7 +16,8 @@ class DistributionUpdateManager(
 ) {
     private val appUpdateManager = AppUpdateManagerFactory.create(activity)
 
-    fun checkForUpdate(force: Boolean = false) {
+    /** Runs only from the user-selected Check for updates action. */
+    fun checkForUpdate() {
         appUpdateManager.appUpdateInfo
             .addOnSuccessListener { info ->
                 val available = info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
@@ -30,7 +31,7 @@ class DistributionUpdateManager(
                             AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
                         )
                     }.onFailure { AppLogger.e("Unable to start Play update", it) }
-                } else if (force) {
+                } else {
                     Toast.makeText(
                         activity,
                         "You are using the latest version.",
@@ -40,7 +41,7 @@ class DistributionUpdateManager(
             }
             .addOnFailureListener {
                 AppLogger.w("Play update check unavailable: ${it.message}")
-                if (force) Toast.makeText(
+                Toast.makeText(
                     activity,
                     "Unable to check for updates. Try again later.",
                     Toast.LENGTH_LONG

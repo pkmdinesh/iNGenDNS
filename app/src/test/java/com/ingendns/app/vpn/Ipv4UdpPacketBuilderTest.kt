@@ -8,9 +8,16 @@ class Ipv4UdpPacketBuilderTest {
     @Test
     fun `builds valid IPv4 UDP DNS response`() {
         val payload = byteArrayOf(0x12, 0x34, 0x01, 0x00)
+        val inputPacket = ByteArray(24).apply {
+            this[14] = 10
+            this[15] = 10
+            this[16] = 0
+            this[17] = 2
+        }
         val packet = Ipv4UdpPacketBuilder.response(
-            sourceAddress = "1.1.1.1",
-            destinationAddress = byteArrayOf(10, 10, 0, 2),
+            sourceAddress = byteArrayOf(1, 1, 1, 1),
+            destinationPacket = inputPacket,
+            destinationAddressOffset = 14,
             sourcePort = 53,
             destinationPort = 49152,
             payload = payload

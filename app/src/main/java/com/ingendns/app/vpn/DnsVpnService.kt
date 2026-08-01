@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.net.Inet4Address
+import java.net.InetAddress
 import kotlin.concurrent.thread
 
 /** Local, DNS-only IPv4 UDP forwarder. All non-DNS traffic remains on the underlying network. */
@@ -178,6 +179,8 @@ class DnsVpnService : VpnService() {
         val input = FileInputStream(descriptor.fileDescriptor)
         val output = FileOutputStream(descriptor.fileDescriptor)
         val buffer = ByteArray(32_767)
+        val targetAddress = InetAddress.getByName(targetResolver).address
+        require(targetAddress.size == 4) { "VPN resolver must be IPv4" }
         var consecutiveFailures = 0
         try {
             val verified = sendQuery(targetResolver, targetProtocol, targetEndpoint, CONNECTION_TEST_QUERY) != null
@@ -187,17 +190,23 @@ class DnsVpnService : VpnService() {
             while (!Thread.currentThread().isInterrupted) {
                 val count = input.read(buffer)
                 if (count <= 28) continue
-                val packet = buffer.copyOf(count)
-                val header = (packet[0].toInt() and 0x0f) * 4
-                if ((packet[0].toInt() ushr 4) != 4 || packet[9].toInt() != 17 || header < 20) continue
-                val source = packet.copyOfRange(12, 16)
+                val header = (buffer[0].toInt() and 0x0f) * 4
+                if ((buffer[0].toInt() ushr 4) != 4 || buffer[9].toInt() != 17 || header < 20) continue
                 val sourcePort =
-                    ((packet[header].toInt() and 0xff) shl 8) or (packet[header + 1].toInt() and 0xff)
+                    ((buffer[header].toInt() and 0xff) shl 8) or (buffer[header + 1].toInt() and 0xff)
                 val destinationPort =
-                    ((packet[header + 2].toInt() and 0xff) shl 8) or (packet[header + 3].toInt() and 0xff)
+                    ((buffer[header + 2].toInt() and 0xff) shl 8) or (buffer[header + 3].toInt() and 0xff)
                 if (destinationPort != Constants.DNS_PORT) continue
-                val payload = packet.copyOfRange(header + 8, count)
-                val response = sendQuery(targetResolver, targetProtocol, targetEndpoint, payload)
+                val payloadOffset = header + 8
+                if (payloadOffset > count) continue
+                val response = sendQuery(
+                    targetResolver,
+                    targetProtocol,
+                    targetEndpoint,
+                    buffer,
+                    payloadOffset,
+                    count - payloadOffset
+                )
                 if (response == null) {
                     consecutiveFailures++
                     if (consecutiveFailures >= FAILURE_THRESHOLD) {
@@ -209,14 +218,14 @@ class DnsVpnService : VpnService() {
                 markConnected(targetProtocol)
                 output.write(
                     Ipv4UdpPacketBuilder.response(
-                        sourceAddress = targetResolver,
-                        destinationAddress = source,
+                        sourceAddress = targetAddress,
+                        destinationPacket = buffer,
+                        destinationAddressOffset = 12,
                         sourcePort = Constants.DNS_PORT,
                         destinationPort = sourcePort,
                         payload = response
                     )
                 )
-                output.flush()
             }
         } catch (_: Exception) { /* tunnel closure or transient network failure */
         } finally {
@@ -233,11 +242,23 @@ class DnsVpnService : VpnService() {
         targetResolver: String,
         targetProtocol: DnsProtocol?,
         targetEndpoint: String?,
-        request: ByteArray
+        request: ByteArray,
+        requestOffset: Int = 0,
+        requestLength: Int = request.size
     ): ByteArray? = if (targetProtocol == null) {
-        forwarder.sendPlain(targetResolver, request, ::protect)
+        forwarder.sendPlain(
+            targetResolver, request, requestOffset, requestLength, ::protect
+        )
     } else {
-        forwarder.sendQuery(targetProtocol, targetResolver, requireNotNull(targetEndpoint), request, ::protect)
+        forwarder.sendQuery(
+            targetProtocol,
+            targetResolver,
+            requireNotNull(targetEndpoint),
+            request,
+            requestOffset,
+            requestLength,
+            ::protect
+        )
     }
 
     @Synchronized

@@ -68,7 +68,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         distributionUpdateManager = DistributionUpdateManager(this, updateLauncher)
-        distributionUpdateManager.checkForUpdate()
         networkMonitor = NetworkMonitor(applicationContext)
 
         val settings = AppSettings(applicationContext)
@@ -124,7 +123,7 @@ class MainActivity : ComponentActivity() {
                     onOpenVpnSettings = {
                         startActivity(Intent(Settings.ACTION_VPN_SETTINGS))
                     },
-                    onCheckForUpdates = { distributionUpdateManager.checkForUpdate(force = true) },
+                    onCheckForUpdates = { distributionUpdateManager.checkForUpdate() },
                     onExit = { moveTaskToBack(true) }
                 )
             }
@@ -144,9 +143,6 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         if (::networkMonitor.isInitialized) networkMonitor.refreshNow()
-        if (::distributionUpdateManager.isInitialized) {
-            distributionUpdateManager.checkForUpdate()
-        }
         reconcileVpnAuthorization()
         syncAutoConnectMonitoring()
     }

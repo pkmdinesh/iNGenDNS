@@ -23,13 +23,18 @@ class DnsForwarder {
         dnsIp: String,
         endpoint: String,
         request: ByteArray,
+        requestOffset: Int = 0,
+        requestLength: Int = request.size,
         protectSocket: (Socket) -> Boolean
     ): ByteArray? = runCatching {
+        requireValidRange(request, requestOffset, requestLength)
         when (protocol) {
-            DnsProtocol.DOT -> sendDot(dnsIp, endpoint, request, protectSocket)
+            DnsProtocol.DOT -> sendDot(
+                dnsIp, endpoint, request, requestOffset, requestLength, protectSocket
+            )
             DnsProtocol.DOH -> {
                 closeDot()
-                sendDoh(endpoint, request)
+                sendDoh(endpoint, request, requestOffset, requestLength)
             }
         }
     }.onFailure { Log.e("iNGenDNS", "Encrypted DNS forwarding failed", it) }.getOrNull()
@@ -38,16 +43,25 @@ class DnsForwarder {
         dnsIp: String,
         hostname: String,
         request: ByteArray,
+        requestOffset: Int,
+        requestLength: Int,
         protectSocket: (Socket) -> Boolean
     ): ByteArray {
         val key = "$dnsIp|$hostname"
         val socket = dotSocket?.takeIf {
             dotKey == key && it.isConnected && !it.isClosed
         } ?: openDot(dnsIp, hostname, protectSocket)
-        return runCatching { exchangeDot(socket, request) }.getOrElse {
+        return runCatching {
+            exchangeDot(socket, request, requestOffset, requestLength)
+        }.getOrElse {
             closeDot()
             if (Thread.currentThread().isInterrupted) throw it
-            exchangeDot(openDot(dnsIp, hostname, protectSocket), request)
+            exchangeDot(
+                openDot(dnsIp, hostname, protectSocket),
+                request,
+                requestOffset,
+                requestLength
+            )
         }
     }
 
@@ -75,10 +89,15 @@ class DnsForwarder {
         return tls
     }
 
-    private fun exchangeDot(socket: SSLSocket, request: ByteArray): ByteArray {
+    private fun exchangeDot(
+        socket: SSLSocket,
+        request: ByteArray,
+        requestOffset: Int,
+        requestLength: Int
+    ): ByteArray {
         val output = DataOutputStream(socket.outputStream)
-        output.writeShort(request.size)
-        output.write(request)
+        output.writeShort(requestLength)
+        output.write(request, requestOffset, requestLength)
         output.flush()
         val input = DataInputStream(socket.inputStream)
         val length = input.readUnsignedShort()
@@ -90,13 +109,16 @@ class DnsForwarder {
     fun sendPlain(
         dnsIp: String,
         request: ByteArray,
+        requestOffset: Int = 0,
+        requestLength: Int = request.size,
         protectSocket: (DatagramSocket) -> Boolean
     ): ByteArray? = runCatching {
+        requireValidRange(request, requestOffset, requestLength)
         DatagramSocket().use { socket ->
             protectSocket(socket)
             socket.soTimeout = Constants.DNS_TIMEOUT_MS
             socket.connect(InetSocketAddress(dnsIp, Constants.DNS_PORT))
-            socket.send(DatagramPacket(request, request.size))
+            socket.send(DatagramPacket(request, requestOffset, requestLength))
             val response = ByteArray(4_096)
             val packet = DatagramPacket(response, response.size)
             socket.receive(packet)
@@ -110,16 +132,36 @@ class DnsForwarder {
         dotKey = null
     }
 
-    private fun sendDoh(endpoint: String, request: ByteArray): ByteArray {
+    private fun sendDoh(
+        endpoint: String,
+        request: ByteArray,
+        requestOffset: Int,
+        requestLength: Int
+    ): ByteArray {
         val connection = URL(endpoint).openConnection() as HttpsURLConnection
         connection.connectTimeout = Constants.DNS_TIMEOUT_MS
         connection.readTimeout = Constants.DNS_TIMEOUT_MS
         connection.requestMethod = "POST"
         connection.doOutput = true
+        connection.setFixedLengthStreamingMode(requestLength)
         connection.setRequestProperty("Content-Type", "application/dns-message")
         connection.setRequestProperty("Accept", "application/dns-message")
-        connection.outputStream.use { it.write(request) }
-        require(connection.responseCode == 200) { "DoH returned HTTP ${connection.responseCode}" }
-        return connection.inputStream.use { it.readBytes() }.also { connection.disconnect() }
+        return runCatching {
+            connection.outputStream.use { it.write(request, requestOffset, requestLength) }
+            require(connection.responseCode == 200) {
+                "DoH returned HTTP ${connection.responseCode}"
+            }
+            // Closing both streams returns a healthy HTTPS socket to Android's
+            // connection pool. Calling disconnect() here would discourage reuse.
+            connection.inputStream.use { it.readBytes() }
+        }.onFailure {
+            connection.disconnect()
+        }.getOrThrow()
+    }
+
+    private fun requireValidRange(buffer: ByteArray, offset: Int, length: Int) {
+        require(offset >= 0 && length >= 0 && offset <= buffer.size - length) {
+            "Invalid DNS request range"
+        }
     }
 }

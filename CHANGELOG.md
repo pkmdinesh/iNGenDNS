@@ -1,5 +1,14 @@
 # Changelog
 
+## 12.2 - 2026-08-01
+
+- Removed automatic daily update checks; updates are now checked only when the user selects **Check for updates** in About.
+- Reduced per-query allocations in the VPN DNS forwarding path by processing reusable packet-buffer slices directly.
+- Improved DoH connection reuse by keeping successful HTTPS connections eligible for Android's connection pool.
+- Removed unnecessary per-response stream flushing from the VPN forwarding loop.
+- Kept existing DoH/DoT timeouts and resolver failover behavior unchanged.
+- Reduced the adaptive launcher foreground to Android's safe zone so the logo fits normal and round launcher masks.
+
 ## 12.1 - 2026-07-30
 
 - Added hybrid Always-on VPN behavior: encrypted DNS on cellular and Wi-Fi-provided DNS on Wi-Fi.
