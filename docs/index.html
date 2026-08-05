@@ -252,7 +252,12 @@
       align-items: center;
       justify-content: center;
       gap: 22px;
-      margin: 68px 0 50px;
+        /* FIXED: Changed 0 to auto to center the card on desktop */
+  margin: 68px auto 50px; 
+  
+  /* FIXED: Prevents the card from stretching full-width on desktop */
+  max-width: 600px;
+  width: 100%;
       padding: clamp(28px, 4vw, 42px);
       text-align: center;
       border-radius: 30px;
