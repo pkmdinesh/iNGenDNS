@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="theme-color" content="#082f3c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ocean Watch">
+  <link rel="manifest" href="manifest.webmanifest?v=10">
+  <link rel="apple-touch-icon" href="icons/ocean-watch-v3-apple.png">
+  <meta name="description" content="Click to know today’s coastal advisory status of India: tsunami, high wave, swell and storm surge, ocean currents, and potential fishing zones.">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="https://cdn.maptiler.com/maptiler-sdk-js/v4.0.2/maptiler-sdk.css">
+  <meta property="og:url" content="https://pkmdinesh.github.io/indiaoceanwatch/">
+  <meta property="og:title" content="Coastal Advisory Status">
+  <meta property="og:description" content="Click to Know Today’s Coastal Advisory Status of India (Tsunami, High Wave, Swell & Storm Surge, Ocean Current, Potential Fishing Zone)">
+  <meta property="og:image" content="https://pkmdinesh.github.io/indiaoceanwatch/social-banner-square.png">
+  <meta property="og:image:width" content="1254">
+  <meta property="og:image:height" content="1254">
+  <meta property="og:image:alt" content="Coastal Advisory Status of India — Tsunami, High Wave, Swell & Storm Surge, Ocean Current, Potential Fishing Zone">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Coastal Advisory Status">
+  <meta name="twitter:description" content="Click to Know Today’s Coastal Advisory Status of India (Tsunami, High Wave, Swell & Storm Surge, Ocean Current, Potential Fishing Zone)">
+  <meta name="twitter:image" content="https://pkmdinesh.github.io/indiaoceanwatch/social-banner-square.png">
+  <title>Coastal Advisory Status</title>
+  <style>
+    :root{--ink:#082f3c;--muted:#5b7279;--paper:#eef3ef;--white:#fff;--line:#d9e5e1;--teal:#087f84;--green:#238269;--orange:#e87520;--yellow:#c99300;--red:#c9362b;--gray:#819195;--violet:#69578f;--safe-bg:#e0f2eb;--alert-bg:#fff0e4;--watch-bg:#fff7cf;--warning-bg:#fde8e6}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:radial-gradient(circle at 0 0,#c9eeea 0,transparent 32rem),var(--paper)}
+    body{padding:12px}
+    html:has(.advisory-dialog[open]),
+    body:has(.advisory-dialog[open]){
+    overflow:hidden;}
+    .dashboard{width:min(1440px,100%);min-height:calc(100dvh - 24px);margin:auto;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;border:1px solid rgba(8,47,60,.13);border-radius:24px;background:rgba(255,255,255,.94);box-shadow:0 20px 60px rgba(8,47,60,.12)}
+    a{color:inherit}.header{position:relative;display:flex;align-items:center;gap:18px;padding:13px 20px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#fff,#f7fbf9)}.incois-logo{width:min(390px,31vw);height:52px;object-fit:contain;object-position:left center}.title{position:absolute;left:50%;transform:translateX(-50%);width:max-content;max-width:42vw;text-align:center}.title h1{margin:0;white-space:nowrap;font:700 clamp(21px,2.25vw,35px)/1 Georgia,"Times New Roman",serif;letter-spacing:-.03em}.title p{margin:5px 0 0;color:var(--ink);font-size:11px;font-weight:800}.stamp{margin-left:auto;text-align:right;color:var(--muted);font-size:10px;line-height:1.45}.stamp time{color:var(--ink);font-size:11px;font-weight:800}.live{display:inline-flex;align-items:center;gap:6px;color:var(--green);font-weight:800}.live:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px #dcefe9}
+    .content{min-height:0;display:grid;grid-template-columns:1.45fr 1fr 1fr}.panel{min-width:0;min-height:0;padding:14px 16px;border-right:1px solid var(--line)}.panel:last-child{border-right:0}.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:11px}.service-img{width:58px;height:42px;flex:none;object-fit:cover;border-radius:10px}.service-logo{width:58px;height:42px;flex:none;object-fit:contain}.panel h2{margin:0;white-space:nowrap;font:700 clamp(18px,1.8vw,27px)/1 Georgia,"Times New Roman",serif}.panel-kicker{margin:3px 0 0;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}.source{margin-left:auto;flex:none;text-decoration:none;padding:7px 9px;border-radius:8px;background:#e7f0ed;font-size:11px;font-weight:800}.source:hover,.source:focus-visible{color:#fff;background:var(--teal);outline:0}
+    .forecast{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;height:calc(100% - 55px)}.forecast-card{display:flex;min-height:0;flex-direction:column;padding:11px;border-radius:15px;background:#f5f8f6;border:1px solid var(--line)}.forecast-card.current-forecast{grid-column:1/-1}.forecast-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}.forecast-title h3{margin:0;font-size:17px}.forecast-meta{display:grid;gap:2px;text-align:right}.kind{font-size:11px;color:var(--ink);font-weight:800;text-transform:uppercase}.issue-date{color:var(--green);font-size:11px;font-weight:900;white-space:nowrap}.dot{width:8px;height:8px;flex:none;border-radius:50%;background:currentColor}.alert{color:var(--orange)}.watch{color:var(--yellow)}.warning{color:var(--red)}.nothreat{color:var(--green)}.states{display:flex;flex-wrap:wrap;gap:4px}.tag{padding:4px 6px;border:1px solid transparent;border-radius:5px;background:#e4ece9;color:var(--ink);font-size:11px;font-weight:800;line-height:1.2;text-decoration:none}.empty{color:var(--ink);font-size:11px;font-weight:700;line-height:1.35}
+    .severity-board{display:grid;gap:2px;min-height:0;overflow:auto;scrollbar-width:thin}.severity-row{display:grid;grid-template-columns:67px 1fr;gap:6px;align-items:start;padding:6px 0;border-top:1px solid var(--line)}.severity-row:first-child{border-top:0}.severity-row-label{display:inline-flex;align-items:center;gap:5px;padding-top:4px;font-size:10px;font-weight:900;text-transform:uppercase}.severity-row-states{display:flex;flex-wrap:wrap;gap:4px}.severity-state-chip{display:inline-flex;align-items:center;padding:4px 6px;border:1px solid transparent;border-radius:6px;color:var(--ink);font-family:inherit;font-size:11px;font-weight:800;line-height:1.2;text-decoration:none;cursor:pointer}.severity-state-chip:hover,.severity-state-chip:focus-visible{outline:2px solid var(--teal);outline-offset:1px}.severity-state-chip.warning{color:var(--ink);background:var(--warning-bg);border-color:#e9a29c}.severity-state-chip.alert{color:var(--ink);background:var(--alert-bg);border-color:#f2bd91}.severity-state-chip.watch{color:var(--ink);background:var(--watch-bg);border-color:#e5ce69}.severity-state-chip.noThreat{color:var(--ink);background:var(--safe-bg);border-color:#9fd2c1}.district-count{margin-left:3px;opacity:.72;font-size:1em;font-weight:400}.advisory-note{margin:7px 0 0;color:var(--muted);font-size:10px;font-weight:700;line-height:1.3}
+    .advisory-dialog{width:min(620px,calc(100vw - 28px));max-height:calc(100dvh - 28px);margin: auto;padding:0;overflow: auto;border:0;border-radius:18px;background:#fff;color:var(--ink);box-shadow:0 25px 80px rgba(8,47,60,.28);overflow-y: auto;overscroll-behavior: contain;touch-action: pan-y}.advisory-dialog::backdrop{background:rgba(4,28,36,.52);backdrop-filter:blur(3px)}.advisory-dialog-head{position:sticky;top:0;z-index:10;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:17px 18px 13px;border-bottom:1px solid var(--line);background:#fff}.advisory-dialog-head h2{margin:0;font:700 20px/1.15 Georgia,"Times New Roman",serif}.advisory-dialog-head p{margin:4px 0 0;color:var(--muted);font-size:11px;font-weight:800}.dialog-close{position: relative;z-index: 11;display:grid;place-items:center;width:38px;height:38px;flex: 0 0 38px;border:0;border-radius:50%;background:#e7f0ed;color:var(--ink);font-size:20px;cursor:pointer}.dialog-close:hover,.dialog-close:focus-visible{color:#fff;background:var(--teal);outline:0}.advisory-details{display:grid;gap:9px;padding:14px 18px 19px;overscroll-behavior: contain}.district-advisory{padding:11px 12px;border:1px solid var(--line);border-left-width:5px;border-radius:11px;background:#f8faf9}.district-advisory.severity-warning{border-left-color:var(--red)}.district-advisory.severity-alert{border-left-color:var(--orange)}.district-advisory.severity-watch{border-left-color:var(--yellow)}.district-advisory.severity-noThreat{border-left-color:var(--green)}.district-advisory-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.district-advisory h3{margin:0;font-size:15px}.severity-pill{padding:3px 6px;border-radius:5px;font-size:9px;font-weight:900;text-transform:uppercase}.severity-pill.warning{color:#8f241d;background:var(--warning-bg)}.severity-pill.alert{color:#93400c;background:var(--alert-bg)}.severity-pill.watch{color:#765900;background:var(--watch-bg)}.severity-pill.noThreat{color:#17634f;background:var(--safe-bg)}.district-advisory p{margin:7px 0 0;color:#294b55;font-size:14px;font-weight:650;line-height:1.45}
+    .tsunami-status{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:var(--safe-bg);color:var(--green)}.safe-mark{display:grid;place-items:center;width:44px;height:44px;flex:none;border-radius:50%;color:#fff!important;background:var(--green);font-size:22px;font-weight:900}.tsunami-status strong{display:block;color:currentColor;font-size:21px}.tsunami-copy>span{display:block;margin-top:2px;color:var(--ink);font-size:11px;font-weight:700}.tsunami-copy{min-width:0}.bulletin-link{display:none;margin-top:6px;color:var(--ink);font-size:11px;font-weight:900}.bulletin-link.is-visible{display:inline-block}.advisory-alert{color:var(--orange)!important;background:var(--alert-bg)!important}.advisory-watch{color:var(--yellow)!important;background:var(--watch-bg)!important}.advisory-warning{color:var(--red)!important;background:var(--warning-bg)!important}.advisory-safe{color:var(--green)!important;background:var(--safe-bg)!important}.advisory-other{color:var(--ink)!important;background:#edf1f2!important}.advisory-other strong{font-size:14px;line-height:1.35}.advisory-alert .safe-mark{background:var(--orange)}.advisory-watch .safe-mark{background:var(--yellow)}.advisory-warning .safe-mark{background:var(--red)}.advisory-safe .safe-mark{background:var(--green)}.advisory-other .safe-mark{background:var(--red)}.seismic{display:grid;grid-template-columns:48px 1fr;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}.seismic img{width:48px;height:48px;border-radius:10px;object-fit:contain}.seismic-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}.seismic h3{margin:0;font-size:16px}.seismic p{margin:0;color:var(--ink);font-size:12px;font-weight:700;line-height:1.45}.seismic-additional{display:grid;gap:3px;margin-top:4px}.seismic-additional:empty{display:none}.seismic-additional p{padding-left:8px;border-left:3px solid var(--orange);font-size:10px}.earthquake-chip{display:inline-flex;flex:none;padding:5px 8px;border-radius:7px;background:#e7f0ed;text-decoration:none;font-size:10px;font-weight:900}.earthquake-chip:hover,.earthquake-chip:focus-visible{color:#fff;background:var(--teal);outline:0}.mini h3{margin:0 0 6px;font-size:13px}.mini p{margin:0;color:var(--ink);font-size:11px;font-weight:700;line-height:1.45}.seismic b{color:var(--ink)}
+    .right{padding:0}.mini{min-height:0;padding:14px 16px}.mini .panel-head{margin-bottom:8px}.mini h2{margin:0;white-space:nowrap;font:700 clamp(18px,1.7vw,26px)/1 Georgia,"Times New Roman",serif}.storm-block{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.storm-block .panel-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px;margin-bottom:7px}.storm-block .panel-head>div{min-width:0}.storm-block .source{margin-left:0;justify-self:end}.storm-block #surge-title{font-size:clamp(16px,1.45vw,22px)}.storm-status{display:flex;align-items:center;gap:9px;padding:9px;border-radius:12px;background:var(--safe-bg);color:var(--green)}.storm-mark{display:grid;place-items:center;width:30px;height:30px;flex:none;border-radius:50%;color:#fff;background:var(--green);font-size:16px;font-weight:900}.storm-copy{min-width:0}.storm-copy strong,.storm-copy span{display:block}.storm-copy strong{font-size:12px;line-height:1.35}.storm-copy span{margin-top:2px;color:var(--ink);font-size:10px;font-weight:700}.storm-status.advisory-other{background:#edf1f2!important}.storm-status.advisory-other .storm-mark{background:var(--red)}.storm-status.advisory-safe .storm-mark{background:var(--green)}.pfz-title{font-size:clamp(16px,1.35vw,21px)!important}.pfz-date{color:var(--green)!important;font-size:13px;font-weight:800}.pfz-states{margin-top:7px}.pfz-chip{color:#082f3c;cursor:pointer}.pfz-chip:hover,.pfz-chip:focus-visible,.pfz-chip[aria-expanded="true"],.landing-chip[aria-expanded="true"]{border-color:var(--teal);outline:2px solid var(--teal);outline-offset:1px}.pfz-details{display:grid;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}.pfz-details[hidden]{display:none}.pfz-details h3{margin:0;font-size:13px}.pfz-landing-centers{display:flex;flex-wrap:wrap;gap:4px}.landing-chip{color:var(--ink);cursor:pointer}.pfz-messages{display:grid;gap:6px}.pfz-message{padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:#fff}.pfz-message summary{color:var(--green);font-size:11px;font-weight:850;cursor:pointer}.pfz-message-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;margin-top:8px;font-size:11px}.pfz-message-field{display:grid;gap:1px}.pfz-message-field strong{color:var(--muted);font-size:9px;text-transform:uppercase}.pfz-message-field span{font-weight:750}.cyclone-card{border-top:1px solid var(--line)}.cyclone-card .panel-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.cyclone-heading{display:flex;align-items:center;gap:9px;min-width:0}.cyclone-icon{width:38px;height:38px;flex:none;object-fit:contain}.cyclone-card h2{font-size:clamp(16px,1.35vw,21px)}.cyclone-status{padding:9px 10px;border-radius:12px;background:var(--safe-bg)}.cyclone-status strong{display:block;font-size:13px;line-height:1.3}.cyclone-status p{margin:4px 0 0;font-size:10px;line-height:1.4}.cyclone-status p[hidden]{display:none}.cyclone-status time{display:block;margin-top:5px;color:var(--muted);font-size:9px;font-weight:800}.cyclone-status.level-yellow{background:var(--watch-bg);border-left:5px solid var(--yellow)}.cyclone-status.level-yellow strong{color:#765900}.cyclone-status.level-orange{background:var(--alert-bg);border-left:5px solid var(--orange)}.cyclone-status.level-orange strong{color:#93400c}.cyclone-status.level-red{background:var(--warning-bg);border-left:5px solid var(--red)}.cyclone-status.level-red strong{color:#8f241d}.cyclone-status.level-safe{border-left:5px solid var(--green)}.cyclone-status.level-safe strong{color:var(--green)}.cyclone-status.level-safe p{font-weight:700}.cyclone-heading-copy{min-width:0}.cyclone-heading-copy .panel-kicker{margin-top:3px}.joint-bulletin-card{margin-top:10px;padding:11px 12px;border:1px solid #b9dfd2;border-left:5px solid var(--green);border-radius:12px;background:var(--safe-bg);box-shadow:0 3px 10px rgba(8,47,60,.05)}.joint-bulletin-card[hidden]{display:none}.joint-bulletin-card.is-recent{border-color:#e9a29c;border-left-color:var(--red);background:var(--warning-bg);box-shadow:0 5px 16px rgba(201,54,43,.14)}.joint-bulletin-message{margin:0;color:var(--ink);font-size:12px;font-weight:800;line-height:1.45;overflow-wrap:anywhere}.joint-bulletin-time{display:block;margin-top:6px;color:var(--muted);font-size:9px;font-weight:800}.joint-bulletin-link{display:inline-block;margin-top:7px;color:var(--teal);font-size:11px;font-weight:900;line-height:1.35;text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}.joint-bulletin-link[hidden],.joint-bulletin-time[hidden]{display:none}.joint-bulletin-card.is-recent .joint-bulletin-message,.joint-bulletin-card.is-recent .joint-bulletin-time,.joint-bulletin-card.is-recent .joint-bulletin-link{color:#8f241d}.footer{display:flex;justify-content:space-between;gap:20px;padding:8px 18px;border-top:1px solid var(--line);background:#f7f9f7;color:var(--muted);font-size:9px;line-height:1.4}.footer strong{color:var(--ink)}.footer-error{color:var(--red);font-weight:850}
+    @media(max-height:760px){body{padding:6px}.dashboard{min-height:calc(100dvh - 12px)}.header{padding:9px 16px}.incois-logo{height:44px}.panel,.mini{padding:10px 12px}.status{padding:5px 0}.forecast-card{padding:8px}.footer{padding:5px 14px}}
+    @media(max-width:1100px){body{padding:0}.dashboard{min-height:100dvh;border-radius:0}.header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px}.ocean-brand{min-width:0}.title{position:static;grid-column:1/-1;grid-row:2;transform:none;width:100%;max-width:none;padding-top:5px}.title h1{white-space:normal}.header-actions{grid-column:2;grid-row:1}.content{grid-template-columns:1fr}.panel{border-right:0;border-bottom:1px solid var(--line)}.forecast{height:auto}.right{grid-template-rows:auto}.stamp{font-size:9px}.panel h2,.mini h2{white-space:normal}.footer{flex-wrap:wrap}}
+    @media(max-width:520px){.forecast{grid-template-columns:1fr}.header{grid-template-columns:minmax(0,1fr) auto;padding:12px}.title{grid-row:2}.header-actions{grid-column:1/-1;grid-row:3;width:100%;justify-content:space-between;padding-top:10px;border-top:1px solid var(--line)}.stamp{margin-left:0;text-align:left}.service-img,.service-logo{width:48px}.panel-head{align-items:flex-start;flex-wrap:wrap}.source{margin-left:0}.severity-row{grid-template-columns:72px 1fr}.footer{display:grid;gap:6px}.advisory-dialog{width:calc(100vw - 12px);max-width:none;max-height:calc(100dvh - 12px);margin:auto 0 0;border-radius:18px;overflow-y: auto;overscroll-behavior: contain;touch-action: pan-y}.advisory-dialog-head{padding:12px 14px}.advisory-details{padding:12px 14px 18px;overscroll-behavior: contain}.dialog-close{width: 40px;height: 40px;flex-basis: 40px}}
+    .storm-block .panel-head{grid-template-columns:auto minmax(0,1fr)}
+    .storm-block .service-logo{grid-row:1 / span 2}
+    .storm-block .source{grid-column:2;grid-row:2;justify-self:end;transform:none}
+    .panel-head .pfz-source,.panel-head .itews-source{margin-left:auto}
+    .severity-row-label.noThreat{color:var(--green)}
+    .header-actions{display:flex;align-items:center;gap:10px;margin-left:auto}.header-actions .stamp{margin-left:0}.install-button,.install-button:hover,.install-button:focus-visible,.install-icon{font-size:14px;line-height:1}}
+    @media(max-width:700px){html,body{width:100%;margin:0;padding:0;overflow-x:hidden}.header{grid-template-columns:1fr;padding:12px}.ocean-brand{grid-column:1;grid-row:1}.title{grid-column:1;grid-row:2;width:100%;margin:0;text-align:center}.title h1,.title p{width:100%;text-align:center}.header-actions{grid-column:1;grid-row:3;width:100%;margin-left:0;justify-content:flex-start;padding-top:8px;border-top:1px solid var(--line)}.header-actions .stamp{margin-left:0;text-align:left}.dashboard{width:100%;margin:0}}
+    @media(max-width:520px){.header-actions{gap:7px}.install-button{width:34px;height:34px;justify-content:center;padding:0}.install-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}}
+    .install-button{color:#fff;background:#082f3c;border-color:#082f3c;box-shadow:0 5px 14px rgba(8,47,60,.22)}.install-button .install-icon{color:#68e0e5}.install-button:hover,.install-button:focus-visible{color:#fff;background:#087f84;border-color:#087f84;box-shadow:0 7px 18px rgba(8,127,132,.3)}
+    .ocean-brand{display:flex;align-items:center;gap:10px;flex:none;text-decoration:none}.brand-monogram{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;color:#fff;background:linear-gradient(145deg,#082f3c,#087f84);box-shadow:0 7px 18px rgba(8,47,60,.2);font:900 14px/1 Georgia,"Times New Roman",serif;letter-spacing:-.04em}.brand-copy{display:grid;gap:2px}.brand-copy strong{font:700 20px/1 Georgia,"Times New Roman",serif}.brand-copy small{color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.05em;text-transform:uppercase}.ocean-brand:hover .brand-monogram,.ocean-brand:focus-visible .brand-monogram{background:linear-gradient(145deg,#075f68,#0da0a6)}.ocean-brand:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:14px}
+    .brand-image{width:48px;height:48px;flex:none;border-radius:14px;object-fit:cover;box-shadow:0 7px 18px rgba(8,47,60,.2)}
+    @media(max-width:520px){.brand-image{width:42px;height:42px}.brand-copy strong{font-size:17px}}
+    @media(min-width:851px){.ocean .forecast{height:calc(100% - 74px)}}
+    .content{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-content:start;padding:14px 16px}.content>.panel{padding:14px 16px;border:1px solid var(--line);border-radius:15px;background:#f5f8f6}.content>.panel:last-child{border:1px solid var(--line)}.content .ocean,.content .pfz-card{grid-column:1/-1}.content .ocean .forecast{height:auto}.content .panel-head{display:flex;min-height:42px;align-items:center;flex-wrap:nowrap;padding-top:0}.content .panel-head>div{min-width:0}.content .panel-head h2{font-size:clamp(17px,1.65vw,23px)!important;white-space:normal;overflow-wrap:anywhere}.content .panel-head>.source{position:static;margin-left:auto;flex:none}.content .advisory-card,.content .cyclone-card,.content .storm-card,.content .seismic-card{display:flex;min-width:0;flex-direction:column}.content .tsunami-status,.content .storm-status,.content .cyclone-status{height:auto;min-height:72px;flex:1}.tsunami-status.advisory-bulletin{color:var(--ink)!important;background:#edf1f2!important}.advisory-bulletin .safe-mark{color:var(--red)!important;background:#d7dddf!important}.tsunami-message{display:block;color:currentColor;font-size:22px;font-weight:800}.seismic-message-wrap{display:flex;min-height:72px;flex:1;align-items:center;padding:9px 10px;border-radius:12px;background:var(--safe-bg)}.seismic-message-copy{min-width:0}.seismic-event-link{display:block;color:var(--ink);font-size:12px;font-weight:700;line-height:1.45;text-decoration:underline;text-underline-offset:2px}.seismic-message-wrap .seismic-additional{margin-top:4px}.seismic-additional .seismic-event-link{font-size:10px}.seismic-message-wrap .seismic-additional p{padding-left:0;border-left:0}.seismic-message-wrap.is-recent .seismic-event-link{color:var(--red);font-weight:850}.pfz-card .pfz-states{margin-top:10px}
+    @media(max-width:1100px){.content{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.content .ocean{grid-column:1/-1}}
+    @media(max-width:700px){.content{grid-template-columns:1fr;padding:10px}.content .ocean,.content .pfz-card{grid-column:auto}.content>.panel{padding:13px}.content .panel-head{min-height:0}.forecast{grid-template-columns:1fr}.forecast-card.current-forecast{grid-column:auto}}
+    .seismic-event-link:is(button){width:100%;padding:0;border:0;background:transparent;font-family:inherit;text-align:left;cursor:pointer}.seismic-event-link:is(button):disabled{cursor:default;text-decoration:none}.seismic-dialog{width:min(700px,calc(100% - 28px))}.seismic-dialog-body{display:grid;gap:10px;padding:14px 18px 19px}.event-map{position:relative;height:320px;overflow:hidden;border:1px solid var(--line);border-radius:13px;background:#dce8e5}.event-map-canvas{width:100%;height:100%;min-height:320px}.event-map .leaflet-control-layers{font-family:Arial,sans-serif}.event-map .leaflet-control-attribution{font-size:8px}.earthquake-leaflet-marker{width:22px;height:22px;border:4px solid #fff;border-radius:50%;background:var(--red);box-shadow:0 2px 10px rgba(8,47,60,.6)}.event-map-label{position:absolute;left:10px;bottom:22px;display:flex;flex-direction:column;gap:6px;z-index:500;pointer-events:none}.event-map-label span{display:inline-block;width:max-content;max-width:100%;padding:6px 9px;border-radius:7px;background:rgba(8,47,60,.86);color:#fff;font-size:11px;font-weight:800}.map-attribution{margin:-4px 0 0;color:var(--muted);font-size:9px;font-weight:700;text-align:right}.event-setting{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;padding:9px 10px;border-radius:10px;background:var(--safe-bg)}.event-setting strong{flex:none;color:var(--green);font-size:12px}.event-setting span{font-size:11px;font-weight:700;line-height:1.4}.bulletin-groups{display:grid;gap:9px}.bulletin-section{border:1px solid var(--line);border-radius:10px;background:#f8faf9}.bulletin-section>summary{padding:11px 12px;color:var(--ink);font-size:12px;font-weight:900;cursor:pointer}.bulletin-content{display:grid;gap:8px;padding:0 10px 10px}.bulletin-field{border-top:1px solid var(--line)}.bulletin-field summary{padding:9px 2px;color:var(--ink);font-size:11px;font-weight:900;cursor:pointer}.bulletin-field p{margin:0;padding:0 2px 9px;color:#294b55;font-size:12px;font-weight:650;line-height:1.5}.event-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:0;padding:0 2px 9px}.event-facts div{min-width:0}.event-facts dt{color:var(--muted);font-size:9px;font-weight:800;text-transform:uppercase}.event-facts dd{margin:2px 0 0;color:var(--ink);font-size:12px;font-weight:800;overflow-wrap:anywhere}.bulletin-unavailable{margin:0;padding:10px 12px;border-radius:10px;background:var(--watch-bg);color:var(--ink);font-size:12px;font-weight:800}.event-bulletin-link{justify-self:end;margin-top:2px}.event-bulletin-link[hidden]{display:none}
+    @media(max-width:700px){html{-webkit-text-size-adjust:100%;text-size-adjust:100%}.title p{font-size:12px;line-height:1.45}.stamp{font-size:12px;line-height:1.5}.stamp time{font-size:12px}.live{font-size:12px}.content .panel-head h2{font-size:clamp(18px,5.2vw,21px)!important;line-height:1.15}.panel-kicker{font-size:12px;line-height:1.35}.source{padding:8px 10px;font-size:12px}.forecast-title h3{font-size:18px}.kind{font-size:12px}.issue-date{font-size:13px}.severity-row-label{font-size:12px}.severity-state-chip{padding:6px 8px;font-size:14px;line-height:1.3}.district-count{font-size:1em}.empty{font-size:12px}.advisory-note{font-size:12px;line-height:1.45}.tsunami-status strong{font-size:21px}.tsunami-copy>span,.seismic-event-link{font-size:14px;font-weight:700;line-height:1.5}.storm-copy strong,.cyclone-status strong{font-size:14px}.storm-copy span,.cyclone-status p{font-size:13px;line-height:1.5}.cyclone-status time{font-size:12px}.joint-bulletin-message{font-size:14px;line-height:1.5}.joint-bulletin-link{font-size:13px}.joint-bulletin-time{font-size:12px}.pfz-date{font-size:14px;font-weight:700;line-height:1.45}.tag{padding:6px 8px;font-size:12px}.pfz-chip{font-size:14px;font-weight:700;color:#082f3c}.pfz-landing-centers .tag{font-size:14px}.pfz-message summary,.pfz-message-grid{font-size:13px}.pfz-message-field strong{font-size:13px}.footer{font-size:11px;line-height:1.55}.seismic-dialog{width:100%;max-width:none;max-height:90dvh;margin:auto 0 0;border-radius:20px 20px 0 0}.seismic-dialog-body{padding:12px 15px 18px}.event-map{min-height:210px}.event-map-canvas{min-height:210px}.seismic-dialog .event-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}.bulletin-section summary,.bulletin-section p,.event-facts dd,.event-setting strong,.event-setting span{font-size:13px}}
+    @media(max-width:700px){.seismic-dialog .event-map{height:260px;min-height:0}.seismic-dialog .event-map-canvas{height:260px;min-height:260px}.seismic-dialog .bulletin-section>summary,.seismic-dialog .bulletin-field summary,.seismic-dialog .bulletin-field p{font-size:13px}}
+    .share-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:7px 10px;border:1px solid #082f3c;border-radius:9px;background:#082f3c;color:#fff;font:800 11px/1 inherit;cursor:pointer;box-shadow:0 5px 14px rgba(8,47,60,.22)}.share-button .share-icon{color:#68e0e5}.share-button:hover,.share-button:focus-visible{color:#fff;background:#087f84;border-color:#087f84;outline:0;box-shadow:0 7px 18px rgba(8,127,132,.3)}.share-icon{font-size:14px;line-height:1}.share-dialog{width:min(390px,calc(100vw - 24px));padding:0;border:0;border-radius:18px;background:#fff;color:var(--ink);box-shadow:0 25px 80px rgba(8,47,60,.28)}.share-dialog::backdrop{background:rgba(4,28,36,.52);backdrop-filter:blur(3px)}.share-dialog-body{display:grid;justify-items:center;gap:13px;padding:18px}.share-qr{display:grid;place-items:center;width:220px;height:220px;padding:10px;border:1px solid var(--line);border-radius:14px;background:#fff}.share-qr canvas,.share-qr img{display:block!important;max-width:100%;height:auto!important}.share-qr-error{margin:0;padding:12px;color:var(--muted);font-size:11px;font-weight:800;line-height:1.45;text-align:center}.share-url{width:100%;margin:0;padding:9px 10px;border-radius:9px;background:#f3f7f5;color:var(--ink);font-size:11px;font-weight:750;line-height:1.45;text-align:center;overflow-wrap:anywhere}.share-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;width:100%}.share-action{min-width:112px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:#e7f0ed;color:var(--ink);font:850 11px/1 inherit;cursor:pointer}.share-action:hover,.share-action:focus-visible{color:#fff;background:var(--teal);border-color:var(--teal);outline:0}.share-copy-status{min-height:1.2em;margin:0;color:var(--green);font-size:10px;font-weight:850;text-align:center}@media(max-width:520px){.share-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.share-button{width:34px;height:34px;padding:0}.share-dialog{width:calc(100vw - 16px);border-radius:18px}.share-qr{width:min(220px,70vw);height:min(220px,70vw)}}
+
+    /* Header action buttons: same desktop size and rounded pill shape. */
+    .share-button,.install-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:88px;min-width:88px;height:36px;min-height:36px;padding:0 12px;border:1px solid #082f3c;border-radius:999px;background:#082f3c;color:#fff;font:800 11px/1 inherit;cursor:pointer;box-shadow:0 5px 14px rgba(8,47,60,.22)}
+    .share-button .share-icon,.install-button .install-icon{display:block;width:clamp(16px,1.35vw,20px);height:clamp(16px,1.35vw,20px);flex:0 0 auto;color:#68e0e5;overflow:visible}
+    .share-button:hover,.share-button:focus-visible,.install-button:hover,.install-button:focus-visible{color:#fff;background:#087f84;border-color:#087f84;outline:0;box-shadow:0 7px 18px rgba(8,127,132,.3)}
+    .share-qr{box-sizing:border-box;aspect-ratio:1/1;display: inline-block}
+    .share-qr canvas,.share-qr img{display: inline-block;width:200px!important;height:200px!important;max-width:200px!important;max-height:200px!important;aspect-ratio:1/1!important;object-fit:contain!important}
+    @media(max-width:520px){.share-button,.install-button{width:34px;min-width:34px;height:34px;min-height:34px;padding:0}.share-button .share-icon,.install-button .install-icon{width:18px;height:18px}.share-label,.install-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}.share-qr canvas,.share-qr img{width:min(200px,calc(70vw - 20px))!important;height:min(200px,calc(70vw - 20px))!important;max-width:100%!important;max-height:100%!important}}
+
+    /* Keep header actions as readable chips and give the share dialog one scroll area. */
+    html:has(.share-dialog[open]),body:has(.share-dialog[open]){overflow:hidden}
+    .share-dialog{width:min(390px,calc(100vw - 24px));max-height:calc(100dvh - 24px);margin:auto;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+    .share-dialog .advisory-dialog-head{top:0}
+    .share-qr{display:grid}
+    .share-qr canvas{display:block!important}
+    .share-qr img{display:none!important}
+    @media(max-width:520px){.header-actions{flex-wrap:wrap}.share-button,.install-button{width:auto;min-width:78px;height:34px;min-height:34px;padding:0 11px}.share-button .share-icon,.install-button .install-icon{width:17px;height:17px}.share-label,.install-label{position:static;width:auto;height:auto;overflow:visible;clip:auto;clip-path:none;white-space:nowrap}.share-dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}.share-dialog-body{padding:14px}.share-qr{width:min(220px,65vw);height:min(220px,65vw)}.share-qr canvas{width:min(200px,calc(65vw - 20px))!important;height:min(200px,calc(65vw - 20px))!important}}
+
+    /* Compact action chips, bulletin link, and contact details. */
+    .share-button,.install-button{border-radius:8px}
+    .joint-bulletin-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px}
+    .joint-bulletin-copy{min-width:0}
+    .joint-bulletin-link{align-self:center;margin:0;padding:7px 9px;border-radius:7px;background:#fff;color:var(--teal);text-decoration:none;white-space:nowrap;box-shadow:0 1px 4px rgba(8,47,60,.12)}
+    .joint-bulletin-link:hover,.joint-bulletin-link:focus-visible{background:var(--teal);color:#fff;outline:0}
+    .joint-bulletin-card.is-recent .joint-bulletin-link{color:#8f241d}.joint-bulletin-card.is-recent .joint-bulletin-link:hover,.joint-bulletin-card.is-recent .joint-bulletin-link:focus-visible{background:#8f241d;color:#fff}
+    .content .contact-card{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:18px;align-items:stretch;padding:0;overflow:hidden;background:linear-gradient(135deg,#f5f8f6,#e7f3f0)}
+    .contact-copy{align-self:center;padding:20px 22px}.contact-copy h2{margin:5px 0 4px;font:700 clamp(20px,2vw,29px)/1.15 Georgia,"Times New Roman",serif}.contact-organisation{margin:0;color:var(--teal);font-size:13px;font-weight:850}.contact-copy address{margin-top:14px;font-style:normal}.contact-copy address p{margin:7px 0;color:#294b55;font-size:13px;font-weight:700;line-height:1.55}.contact-copy a{color:var(--teal);overflow-wrap:anywhere}.contact-image{width:100%;height:100%;min-height:220px;max-height:290px;object-fit:cover;object-position:center 52%}
+    @media(max-width:700px){.share-button,.install-button{width:40px;min-width:40px;height:34px;min-height:34px;padding:0;border-radius:8px}.share-label,.install-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}.joint-bulletin-card{grid-template-columns:minmax(0,1fr) auto}.joint-bulletin-link{padding:7px;font-size:11px}.content .contact-card{grid-template-columns:1fr}.contact-copy{padding:18px}.contact-copy address p{font-size:13px}.contact-image{min-height:180px;max-height:230px;object-position:center 52%}}
+  </style>
+</head>
+<body>
+  <main class="dashboard">
+    <header class="header">
+      <a class="ocean-brand" href="./" aria-label="Ocean Watch home"><img class="brand-image" src="icons/ocean-watch-v3-192.png" alt=""><span class="brand-copy"><strong>Ocean Watch</strong></span></a>
+      <div class="title"><h1>Coastal Advisory Status</h1><p>Tsunami · Ocean State Forecast · Storm Surge · Ocean Current · Potential Fishing Zone</p></div>
+      <div class="header-actions">
+        <div class="stamp"><span class="live">Official-source snapshot</span><br><time id="lastUpdated" datetime="2026-07-30T22:15:00+05:30">Checked 30 July 2026 · 10:15 PM IST</time></div>
+        <button class="share-button" id="shareApp" type="button" aria-label="Share Ocean Watch"><svg class="share-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path fill="currentColor" d="M13 14h1v1h-1zm1 1h1v1h-1zm0 1h1v1h-1zm2 0h1v1h-1zm0 1h1v1h-1zm-3-1h1v1h-1zm2 0h1v1h-1zm0 1h1v1h-1zm3-1h1v1h-1zm0-1h1v1h-1zm1-1h1v1h-1zm-2 2h1v1h-1zm0 1h1v1h-1zm-1 1h1v1h-1zm-1 0h1v1h-1zm2 0h1v1h-1zm1 0h1v1h-1zm-2 1h1v1h-1zm-2 0h1v1h-1zm1 0h1v1h-1zm-2 0h1v1h-1zm0 1h1v1h-1zm1 1h1v1h-1zm1 0h1v1h-1zm2 0h1v1h-1zm1 0h1v1h-1zm-1-2h1v1h-1zm1 0h1v1h-1zm1-1h1v1h-1zm0-1h1v1h-1zm0 3h1v1h-1zm0-1h1v1h-1zm1-1h1v1h-1zm0-1h1v1h-1zm1 3h1v1h-1zm0-2h1v1h-1zm0 1h1v1h-1zm-2-3h1v1h-1zm-6 1h1v1h-1zm-1 0h1v1h-1zm0 1h1v1h-1zm2 0h1v1h-1zm-3 0h1v1h-1zm2 0h1v1h-1zm-2 1h1v1h-1zm0 1h1v1h-1zm0-19h1v1h-1zm1 1h1v1h-1zm-1 2h1v1h-1zm1 1h1v1h-1zm-1 1h1v1h-1zm1 0h1v1h-1zm0 1h1v1h-1zm0 1h1v1h-1zm-1 1h1v1h-1zm1 0h1v1h-1zm-1 1h1v1h-1zM1 11h1v1H1zm1 1h1v1H2zm2-1h1v1H4zm0 1h1v1H4zm1-1h1v1H5zm1 1h1v1H6zm1-1h1v1H7zm1 1h1v1H8zm0-1h1v1H8zm1 0h1v1H9zm1 0h1v1h-1zm1 1h1v1h-1zm2 0h1v1h-1zm1-1h1v1h-1zm1 0h1v1h-1zm1 0h1v1h-1zm-1 2h1v1h-1zm-2 9h1v1h-1zm-1 0h1v1h-1zm0-9h1v1h-1zm-1 0h1v1h-1zm0 1h1v1h-1zm0 1h1v1h-1zm11-1h1v1h-1zm-1 1h1v1h-1zm1 2h1v1h-1zm-5-4h1v1h-1zm1-1h1v1h-1zm4 0h1v1h-1zm0 1h1v1h-1zm-1 0h1v1h-1zm1 8h1v1h-1zm-1 1h1v1h-1zm-2 0h1v1h-1zm3 0h1v1h-1z"/><path stroke="currentColor" stroke-width="2" d="M15 2h7v7h-7zM2 2h7v7H2zm0 13h7v7H2zM18 5h1v1h-1zM5 5h1v1H5zm0 13h1v1H5z"/></g></svg><span class="share-label">Share</span></button>
+        <button class="install-button" id="installApp" type="button" hidden aria-label="Install Ocean Watch"><svg class="install-icon" aria-hidden="true" focusable="false" viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1664 1664h128v384H128v-384h128v256h1408zm-147-531-557 557-557-557 90-90 403 402V128h128v1317l403-402z"/></svg><span class="install-label">Install</span></button>
+    </div>
+    </header>
+
+    <div class="content">
+      <section class="panel ocean" aria-labelledby="ocean-title">
+        <div class="panel-head">
+          <img class="service-img" src="assets/ocean-wave-service-icon.png" alt="Ocean wave icon">
+          <div><h2 id="ocean-title">Ocean State Forecast</h2><p class="panel-kicker">High Wave, Swell Surge & Ocean Currents advisories</p></div>
+          <a class="source" href="https://incois.gov.in/site/services/hwa.jsp" target="_blank" rel="noopener">Official map ↗</a>
+        </div>
+        <div class="forecast">
+          <article class="forecast-card">
+            <div class="forecast-title"><h3>High Wave</h3><div class="forecast-meta"><span class="kind">Wave height</span><span class="issue-date" id="highWaveIssueDate">Issue date —</span></div></div>
+            <div class="severity-board" id="highWaveStates"></div>
+          </article>
+          <article class="forecast-card">
+            <div class="forecast-title"><h3>Swell Surge</h3><div class="forecast-meta"><span class="kind">Long-period swell</span><span class="issue-date" id="swellIssueDate">Issue date —</span></div></div>
+            <div class="severity-board" id="swellStates"></div>
+          </article>
+          <article class="forecast-card current-forecast">
+            <div class="forecast-title"><h3>Ocean Currents</h3><div class="forecast-meta"><span class="kind">Current speed</span><span class="issue-date" id="currentIssueDate">Issue date —</span></div></div>
+            <div class="severity-board" id="currentStates"></div>
+          </article>
+        </div>
+        <p class="advisory-note">A state may appear under multiple levels because district and coastal-stretch conditions differ.</p>
+      </section>
+
+      <section class="panel advisory-card" aria-labelledby="tsunami-title">
+        <div class="panel-head">
+          <img class="service-logo" src="assets/tsunami-service-icon.png" alt="Tsunami icon">
+          <div><h2 id="tsunami-title">Tsunami Advisory</h2><p class="panel-kicker">Indian Tsunami Early Warning System</p></div>
+          <a class="source itews-source" href="https://tsunami.incois.gov.in/TEWS/" target="_blank" rel="noopener">ITEWS ↗</a>
+        </div>
+        <div class="tsunami-status advisory-safe" id="tsunamiStatus"><span class="safe-mark" id="tsunamiMark" aria-hidden="true">✓</span><div class="tsunami-copy"><strong class="tsunami-message" id="tsunamiMessage">No Tsunami</strong><span id="tsunamiCaption">Official homepage message when checked</span><a class="bulletin-link" id="tsunamiBulletin" target="_blank" rel="noopener"></a></div></div>
+      </section>
+
+      <section class="panel seismic-card" aria-labelledby="seismic-title">
+        <div class="panel-head"><img class="service-logo" src="assets/earthquake-network-icon.png" alt="Earthquake Network icon"><div><h2 id="seismic-title">Latest seismic activity ≥ 6.5M</h2></div><a class="source" href="https://tsunami.incois.gov.in/TEWS/National.jsp" target="_blank" rel="noopener">Earthquake ↗</a></div>
+        <div class="seismic-message-wrap" id="seismicMessageWrap"><div class="seismic-message-copy"><button class="seismic-event-link" id="seismicMessage" type="button" disabled>No Seismic Activity for the past 90 days with magnitude &gt;= 6.5M</button><div class="seismic-additional" id="seismicAdditional"></div></div></div>
+      </section>
+
+      <section class="panel storm-card" aria-labelledby="surge-title">
+        <div class="panel-head">
+          <img class="service-logo" src="assets/storm-surge-icon.png?v=2" alt="Storm surge icon">
+          <div><h2 id="surge-title">Storm Surge Advisory</h2><p class="panel-kicker">Coastal inundation</p></div>
+          <a class="source" href="https://tsunami.incois.gov.in/TEWS/stormSurgeIndex.jsp" target="_blank" rel="noopener">Bulletin ↗</a>
+        </div>
+        <div class="storm-status advisory-safe" id="stormStatus"><span class="storm-mark" id="stormMark" aria-hidden="true">✓</span><div class="storm-copy"><strong id="stormMessage">No active storm surge bulletin</strong><span id="stormCaption">Official ITEWS bulletin feed when checked</span><a class="bulletin-link" id="stormBulletin" target="_blank" rel="noopener"></a></div></div>
+      </section>
+
+      <section class="panel cyclone-card" aria-labelledby="cyclone-title">
+        <div class="panel-head">
+          <div class="cyclone-heading">
+            <img class="cyclone-icon" src="assets/cyclone-service-icon.png" alt="Cyclone icon">
+            <div class="cyclone-heading-copy">
+              <h2 id="cyclone-title">Cyclone Advisory</h2>
+              <p class="panel-kicker">INCOIS-IMD Joint Bulletin</p>
+            </div>
+          </div>
+          <a class="source" href="https://mausam.imd.gov.in/imd_latest/contents/cyclone.php#" target="_blank" rel="noopener">IMD ↗</a>
+        </div>
+        <div class="cyclone-status level-safe" id="cycloneStatus"><strong id="cycloneMessageTitle">No active cyclone advisory</strong><p id="cycloneMessage">When checked IMD CAP Alerts feed.</p><time id="cycloneIssued"></time></div>
+        <article class="joint-bulletin-card" id="jointBulletinCard" aria-live="polite">
+          <div class="joint-bulletin-copy"><p class="joint-bulletin-message" id="jointBulletinMessage">No INCOIS-IMD joint bulletin is currently available.</p><time class="joint-bulletin-time" id="jointBulletinTime" hidden></time></div>
+          <a class="joint-bulletin-link" id="jointBulletinLink" href="https://incois.gov.in/site/services/jointbulletin.jsp" target="_blank" rel="noopener">INCOIS-IMD ↗</a>
+        </article>
+      </section>
+
+      <section class="panel pfz-card" aria-labelledby="pfz-title">
+        <div class="panel-head">
+          <img class="service-logo" src="assets/potential-fishing-zone-icon.jpg" alt="Fish swimming in ocean currents">
+          <div><h2 id="pfz-title" class="pfz-title">Potential Fishing Zone</h2><p class="panel-kicker">Today’s advisory sectors</p></div>
+          <a class="source pfz-source" href="https://incois.gov.in/MarineFisheries/TextDataHome?mfid=1&amp;request_locale=en" target="_blank" rel="noopener">PFZ ↗</a>
+        </div>
+        <p class="pfz-date" id="pfzDate">Forecast 30 Jul · Valid through 31 Jul 2026</p>
+        <div class="states pfz-states" id="pfzStates"><span class="empty">Loading issued sectors…</span></div>
+        <div class="pfz-details" id="pfzDetails" hidden><h3 id="pfzDetailsTitle"></h3><div class="pfz-landing-centers" id="pfzLandingCenters"></div><div class="pfz-messages" id="pfzMessages"></div></div>
+      </section>
+
+      <section class="panel contact-card" aria-labelledby="contact-title">
+        <div class="contact-copy">
+          <p class="panel-kicker"></p>
+          <h2 id="contact-title">Public Information Portal</h2>
+          <p class="contact-organisation">Under Beta Testing</p>
+        </div>
+        <img class="contact-image" src="1786177913304.jpg" alt="SYNOPS ocean observation and prediction services display at INCOIS">
+      </section>
+
+    </div>
+
+    <footer class="footer"><div><strong>Auto-update:</strong> Every 15 mins · <span id="updateState">Latest saved snapshot loaded</span> · <strong>Disclaimer:</strong> Information is fetched from official sources; however, there may be a delay before updates are reflected. For accuracy, always verify the latest official bulletins.</div><div><a href="https://incois.gov.in/" target="_blank" rel="noopener"><strong>Data source:</strong> INCOIS–MoES ↗</a></div></footer></main>
+  <dialog class="advisory-dialog" id="advisoryDialog" aria-labelledby="advisoryDialogTitle">
+    <div class="advisory-dialog-head">
+      <div>
+        <h2 id="advisoryDialogTitle">District advisories</h2>
+        <p id="advisoryDialogMeta"></p>
+      </div>
+      <button class="dialog-close" id="advisoryDialogClose" type="button" aria-label="Close district advisories">&times;</button>
+    </div>
+    <div class="advisory-details" id="advisoryDetails"></div>
+  </dialog>
+  <dialog class="share-dialog" id="shareDialog" aria-labelledby="shareDialogTitle">
+    <div class="advisory-dialog-head">
+      <div>
+        <h2 id="shareDialogTitle">Share Ocean Watch</h2>
+        <p>Scan the QR code or share the page link</p>
+      </div>
+      <button class="dialog-close" id="shareDialogClose" type="button" aria-label="Close share dialog">&times;</button>
+    </div>
+    <div class="share-dialog-body">
+      <div class="share-qr" id="shareQr" aria-label="QR code for Ocean Watch"></div>
+      <p class="share-url" id="shareUrl"></p>
+      <div class="share-actions">
+        <button class="share-action" id="copyShareLink" type="button">Copy link</button>
+        <button class="share-action" id="nativeShare" type="button">Share</button>
+      </div>
+      <p class="share-copy-status" id="shareCopyStatus" aria-live="polite"></p>
+    </div>
+  </dialog>
+  <dialog
+  class="advisory-dialog seismic-dialog"
+  id="seismicDialog"
+  aria-labelledby="seismicDialogTitle"
+>
+  <div class="advisory-dialog-head">
+    <div>
+      <h2 id="seismicDialogTitle">Earthquake bulletin details</h2>
+      <p id="seismicDialogMeta">Official ITEWS information</p>
+    </div>
+
+    <button
+      class="dialog-close"
+      id="seismicDialogClose"
+      type="button"
+      aria-label="Close earthquake details"
+    >
+      &times;
+    </button>
+  </div>
+
+  <div class="seismic-dialog-body">
+
+    <div
+      class="event-map"
+      id="eventMap"
+      role="region"
+      aria-label="Earthquake location map"
+    >
+      <div id="eventMapCanvas" class="event-map-canvas" aria-label="Interactive earthquake map"></div>
+    </div>
+
+    <p class="map-attribution">
+      Interactive map: OpenStreetMap · Bathymetry reference:
+      <a href="https://www.gebco.net/" target="_blank" rel="noopener">GEBCO</a>
+      · Event information: ITEWS INCOIS
+    </p>
+
+    <div class="event-setting">
+      <strong id="eventSetting"></strong>
+      <span id="eventBathymetry" aria-live="polite"></span>
+    </div>
+
+    <dl class="event-facts" id="eventFacts"></dl>
+
+    <div class="bulletin-groups">
+
+      <details class="bulletin-section">
+        <summary>ITEWS evaluation</summary>
+        <div class="bulletin-content">
+          <p id="eventEvaluation"></p>
+        </div>
+      </details>
+
+      <details class="bulletin-section">
+        <summary>Advice</summary>
+        <div class="bulletin-content">
+          <p id="eventAdvice"></p>
+        </div>
+      </details>
+
+      <details
+        class="bulletin-section"
+        id="eventUpdatesSection"
+        hidden
+      >
+        <summary>Updates</summary>
+        <div class="bulletin-content">
+          <p id="eventUpdates"></p>
+        </div>
+      </details>
+
+    </div>
+
+    <p
+      class="bulletin-unavailable"
+      id="eventBulletinUnavailable"
+      hidden
+    >
+      No official ITEWS bulletin content is available for this event.
+    </p>
+
+    <a
+      class="source event-bulletin-link"
+      id="eventBulletinLink"
+      target="_blank"
+      rel="noopener"
+      hidden
+    >
+      Open official bulletin ↗
+    </a>
+
+  </div>
+</dialog>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.maptiler.com/maptiler-sdk-js/v4.0.2/maptiler-sdk.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    const ids = id => document.getElementById(id);
+    const cleanShareUrl = () => `${location.origin}${location.pathname}`;
+    let shareQrRenderedFor = '';
+    function renderShareQr(url) {
+      const container = ids('shareQr');
+      if (!container) return;
+      if (shareQrRenderedFor === url && container.querySelector('canvas,img')) return;
+      container.replaceChildren();
+      if (typeof QRCode === 'undefined') {
+        const error = document.createElement('p');
+        error.className = 'share-qr-error';
+        error.textContent = 'QR code could not be loaded. Use Copy link or Share below.';
+        container.append(error);
+        shareQrRenderedFor = '';
+        return;
+      }
+      try {
+        new QRCode(container,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});
+        shareQrRenderedFor = url;
+      } catch (error) {
+        console.warn('QR code generation failed:',error);
+        container.replaceChildren();
+        const message = document.createElement('p');
+        message.className = 'share-qr-error';
+        message.textContent = 'QR code could not be generated. Use Copy link or Share below.';
+        container.append(message);
+        shareQrRenderedFor = '';
+      }
+    }
+    function openShareDialog() {
+      const url = cleanShareUrl();
+      ids('shareUrl').textContent = url;
+      ids('shareCopyStatus').textContent = '';
+      ids('nativeShare').hidden = !('share' in navigator);
+       // 1. Open the modal
+  ids('shareDialog').showModal();
+  
+  // 2. Fall completely out of the paint-loop block
+  setTimeout(() => {
+    renderShareQr(url);
+  }, 30); // 30ms forces Chrome to finish painting the native modal layout
+    }
+    async function copyShareUrl() {
+      const url = cleanShareUrl();
+      try {
+        await navigator.clipboard.writeText(url);
+        ids('shareCopyStatus').textContent = 'Link copied';
+      } catch {
+        const input = document.createElement('textarea');
+        input.value = url;
+        input.setAttribute('readonly','');
+        input.style.position = 'fixed';
+        input.style.opacity = '0';
+        document.body.append(input);
+        input.select();
+        document.execCommand('copy');
+        input.remove();
+        ids('shareCopyStatus').textContent = 'Link copied';
+      }
+    }
+    async function nativeShareUrl() {
+      if (!navigator.share) return;
+      try {
+        await navigator.share({title:'Ocean Watch',text:'Coastal Advisory Status',url:cleanShareUrl()});
+      } catch (error) {
+        if (error?.name !== 'AbortError') ids('shareCopyStatus').textContent = 'Unable to open share options';
+      }
+    }
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[char]));
+    const SEISMIC_MAP_DEFAULT_ZOOM = 6; // Increase to zoom in; decrease to zoom out.
+    // Paste your MapTiler API key here. When configured, labels are forced to English.
+    const MAPTILER_API_KEY = 'YOUR_MAPTILER_API_KEY';
+    const hasMapTilerKey = () => MAPTILER_API_KEY && !MAPTILER_API_KEY.includes('YOUR_MAPTILER_API_KEY');
+    let seismicMapMode = '';
+    let seismicMap = null;
+    let seismicEpicentreMarker = null;
+    let seismicBathymetryLayer = null;
+
+    function ensureSeismicMap() {
+      if (seismicMap) return seismicMap;
+
+      if (hasMapTilerKey() && window.maptilersdk) {
+        seismicMapMode = 'maptiler';
+        maptilersdk.config.apiKey = MAPTILER_API_KEY;
+        seismicMap = new maptilersdk.Map({
+          container: 'eventMapCanvas',
+          style: maptilersdk.MapStyle.STREETS,
+          language: 'en',
+          center: [0,0],
+          zoom: SEISMIC_MAP_DEFAULT_ZOOM,
+          minZoom: 2,
+          maxZoom: 12,
+          navigationControl: true,
+          attributionControl: true
+        });
+        return seismicMap;
+      }
+
+      if (!window.L) return null;
+      seismicMapMode = 'leaflet';
+      seismicMap = L.map('eventMapCanvas', {
+        zoomControl: true,
+        attributionControl: true,
+        minZoom: 2,
+        maxZoom: 12,
+        worldCopyJump: true
+      });
+
+      const labelledBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Tiles &copy; Esri'
+      }).addTo(seismicMap);
+
+      seismicBathymetryLayer = L.tileLayer.wms('https://wms.gebco.net/mapserv', {
+        layers: 'gebco_latest',
+        format: 'image/png',
+        transparent: true,
+        opacity: 0.55,
+        attribution: 'GEBCO'
+      });
+
+      L.control.layers(
+        { 'Global map (English)': labelledBase },
+        { 'GEBCO bathymetry': seismicBathymetryLayer },
+        { collapsed: true, position: 'topright' }
+      ).addTo(seismicMap);
+
+      return seismicMap;
+    }
+
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt',event => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      ids('installApp').hidden = false;
+    });
+    window.addEventListener('appinstalled',() => {
+      deferredInstallPrompt = null;
+      ids('installApp').hidden = true;
+    });
+    ids('installApp').addEventListener('click',async () => {
+      if (!deferredInstallPrompt) { ids('installApp').hidden = true; return; }
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      ids('installApp').hidden = true;
+    });
+    ids('shareApp').addEventListener('click',openShareDialog);
+    ids('copyShareLink').addEventListener('click',copyShareUrl);
+    ids('nativeShare').addEventListener('click',nativeShareUrl);
+    const dashboard = document.querySelector('.dashboard');
+    const advisoryDialog = ids('advisoryDialog');
+    let savedZoom = 100;
+    const titleCase = value => String(value).toLowerCase().replace(/\b\w/g, c => c.toUpperCase()).replace('And Nicobar','& Nicobar');
+    function tags(id, values, fallback) {
+      const el = ids(id); if (!el) return;
+      if (!values || !values.length) { el.innerHTML = `<span class="empty">${fallback}</span>`; return; }
+      el.innerHTML = values.map(value => `<span class="tag">${titleCase(value)}</span>`).join('');
+    }
+    function renderPfzSectors(values) {
+      const el = ids('pfzStates');
+      ids('pfzDetails').hidden = true;
+      if (!values || !values.length) { el.innerHTML = '<span class="empty">No sectors issued</span>'; return; }
+      el.replaceChildren(...values.map(value => {
+        const sector = typeof value === 'string' ? {name:value,landingCenters:[]} : value;
+        const chip = document.createElement('button');
+        chip.type = 'button'; chip.className = 'tag pfz-chip'; chip.setAttribute('aria-expanded','false');
+        chip.textContent = `${titleCase(sector.name)}(${sector.landingCenters?.length || 0})`;
+        chip.addEventListener('click',() => {
+          el.querySelectorAll('.pfz-chip').forEach(item => item.setAttribute('aria-expanded',String(item === chip)));
+          renderPfzLandingCenters(sector);
+        });
+        return chip;
+      }));
+    }
+    function renderPfzLandingCenters(sector) {
+      const details = ids('pfzDetails');
+      const centers = sector.landingCenters || [];
+      ids('pfzDetailsTitle').textContent = `${titleCase(sector.name)} landing centers`;
+      ids('pfzMessages').replaceChildren();
+      ids('pfzLandingCenters').replaceChildren(...centers.map(center => {
+        const chip = document.createElement('button');
+        const messageCount = center.messages?.length || 0;
+        chip.type = 'button'; chip.className = 'tag landing-chip';
+        chip.textContent = `${titleCase(center.name)}${messageCount > 1 ? `(${messageCount})` : ''}`;
+        chip.setAttribute('aria-expanded','false');
+        chip.addEventListener('click',() => {
+          ids('pfzLandingCenters').querySelectorAll('.landing-chip').forEach(item => item.setAttribute('aria-expanded',String(item === chip)));
+          renderPfzMessages(center);
+        });
+        return chip;
+      }));
+      if (!centers.length) ids('pfzLandingCenters').innerHTML = '<span class="empty">Landing-center details will appear after the next source update.</span>';
+      details.hidden = false;
+    }
+    function renderPfzMessages(center) {
+      const labels = {direction:'Direction',bearing:'Bearing (deg)',distance:'Distance (km)',depth:'Depth (mtr)',latitude:'Latitude (dms)',longitude:'Longitude (dms)'};
+      ids('pfzMessages').replaceChildren(...(center.messages || []).map((message,index) => {
+        const panel = document.createElement('details'); panel.className = 'pfz-message'; panel.open = true;
+        const summary = document.createElement('summary'); summary.textContent = `Landing Center: ${titleCase(center.name)}${center.messages.length > 1 ? ` — Message ${index + 1}` : ''}`;
+        const grid = document.createElement('div'); grid.className = 'pfz-message-grid';
+        grid.replaceChildren(...Object.entries(labels).map(([key,label]) => {
+          const field = document.createElement('div'); field.className = 'pfz-message-field';
+          const heading = document.createElement('strong'); heading.textContent = label;
+          const value = document.createElement('span'); value.textContent = message[key] || '—';
+          field.append(heading,value); return field;
+        }));
+        panel.append(summary,grid); return panel;
+      }));
+    }
+    const severityOrder = ['warning','alert','watch','noThreat'];
+    const severityLabel = {warning:'Warning',alert:'Alert',watch:'Watch',noThreat:'No threat'};
+    function legacyStateSummaries(group) {
+      const names = [...new Set(severityOrder.flatMap(level => group?.[level] || []))];
+      return names.map(name => {
+        const levels = severityOrder.filter(level => (group[level] || []).includes(name));
+        const counts = Object.fromEntries(severityOrder.map(level => [level,(group[level] || []).includes(name) ? 1 : 0]));
+        return {name,highestSeverity:levels[0] || 'noThreat',counts,advisories:[]};
+      });
+    }
+    function countSummary(counts = {}) {
+      return severityOrder.filter(level => counts[level]).map(level => `${counts[level]} ${severityLabel[level]}`).join(' \u00b7 ');
+    }
+    function openAdvisoryDetails(hazardName, issueDate, state) {
+      ids('advisoryDialogTitle').textContent = `${titleCase(state.name)} \u2014 ${hazardName}`;
+      ids('advisoryDialogMeta').textContent = `${countSummary(state.counts)}${issueDate ? ` \u00b7 Issued ${issueDate}` : ''}`;
+      const advisories = state.advisories || [];
+      if (!advisories.length) {
+        ids('advisoryDetails').innerHTML = '<p class="empty">District details will appear after the next source update.</p>';
+      } else {
+        ids('advisoryDetails').replaceChildren(...advisories.map(advisory => {
+          const article = document.createElement('article');
+          article.className = `district-advisory severity-${advisory.severity}`;
+          const head = document.createElement('div'); head.className = 'district-advisory-head';
+          const district = document.createElement('h3'); district.textContent = titleCase(advisory.district || 'Coastal area');
+          const pill = document.createElement('span'); pill.className = `severity-pill ${advisory.severity}`; pill.textContent = severityLabel[advisory.severity] || advisory.severity;
+          head.append(district,pill);
+          const message = document.createElement('p'); message.textContent = advisory.message || 'Open the official map for full details.';
+          article.append(head,message);
+          return article;
+        }));
+      }
+     const dialog = ids('advisoryDialog');
+     dialog.scrollTop = 0;
+     dialog.showModal();
+    }
+    function renderSeverityBoard(id, hazardName, group) {
+      const el = ids(id); if (!el) return;
+      const states = group?.states?.length ? group.states : legacyStateSummaries(group || {});
+      if (!states.length) { el.innerHTML = '<span class="empty">No active district advisory</span>'; return; }
+      el.replaceChildren(...severityOrder.map(level => {
+        const row = document.createElement('div'); row.className = 'severity-row';
+        const label = document.createElement('span'); label.className = `severity-row-label ${level}`;
+        const dot = document.createElement('i'); dot.className = 'dot'; dot.setAttribute('aria-hidden','true');
+        label.append(dot,severityLabel[level]);
+        const stateList = document.createElement('div'); stateList.className = 'severity-row-states';
+        if (level === 'noThreat') {
+          const link = document.createElement('a'); link.className = 'severity-state-chip noThreat';
+          link.href = 'https://incois.gov.in/site/services/hwa.jsp'; link.target = '_blank'; link.rel = 'noopener';
+          link.setAttribute('aria-label',`Check the official INCOIS ${hazardName} map`);
+          link.textContent = 'Check Official Map ↗';
+          stateList.append(link); row.append(label,stateList); return row;
+        }
+        const matchingStates = states.filter(state => Number(state.counts?.[level] || 0) > 0).sort((a,b) => a.name.localeCompare(b.name));
+        if (!matchingStates.length) {
+          const none = document.createElement('span'); none.className = 'empty'; none.textContent = 'None'; stateList.append(none);
+        } else {
+          stateList.append(...matchingStates.map(state => {
+            const count = Number(state.counts[level]);
+            const button = document.createElement('button'); button.type = 'button'; button.className = `severity-state-chip ${level}`;
+            button.setAttribute('aria-label', `View ${severityLabel[level]} ${hazardName} districts for ${titleCase(state.name)}`);
+            button.append(document.createTextNode(titleCase(state.name)));
+            const countBadge = document.createElement('span'); countBadge.className = 'district-count'; countBadge.textContent = `(${count})`;
+            button.append(countBadge);
+            button.addEventListener('click',() => openAdvisoryDetails(hazardName,group.issueDate,{
+              name:state.name,
+              counts:{[level]:count},
+              advisories:(state.advisories || []).filter(advisory => advisory.severity === level)
+            }));
+            return button;
+          }));
+        }
+        row.append(label,stateList);
+        return row;
+      }));
+    }
+    function renderTsunami(message, bulletin, recentBulletin = null) {
+      const safe = /^no\s+tsunami\.?$/i.test(String(message || '').trim());
+      const recentNotice = safe && Boolean(recentBulletin);
+      const supportingBulletin = bulletin || recentBulletin;
+      const bulletinLabel = supportingBulletin?.type || supportingBulletin?.number || 'Latest';
+      const status = ids('tsunamiStatus');
+      status.classList.remove('advisory-safe','advisory-other','advisory-bulletin');
+      status.classList.add(recentNotice ? 'advisory-bulletin' : safe ? 'advisory-safe' : 'advisory-other');
+      const messageLink = ids('tsunamiMessage');
+      messageLink.textContent = recentNotice ? 'Check Issued Bulletin' : message || 'Status unavailable';
+      ids('tsunamiMark').textContent = safe && !recentNotice ? '✓' : '!';
+      const eventParts = supportingBulletin ? [supportingBulletin.magnitude ? `M${supportingBulletin.magnitude}` : '',supportingBulletin.location || '',[supportingBulletin.originDate,supportingBulletin.originTime].filter(Boolean).join(' ')].filter(Boolean) : [];
+      ids('tsunamiCaption').textContent = recentNotice ? '' : safe ? 'Official homepage message when checked' : eventParts.length ? `Event: ${eventParts.join(' · ')}` : 'Official ITEWS evaluation';
+      const link = ids('tsunamiBulletin');
+      if (supportingBulletin?.url && !recentNotice) {
+        link.textContent = `Issued Bulletin-${bulletinLabel} ↗`;
+        link.href = supportingBulletin.url;
+        link.classList.add('is-visible');
+      } else {
+        link.removeAttribute('href');
+        link.classList.remove('is-visible');
+      }
+    }
+    function renderStormSurge(message, bulletin) {
+      const safe = /^no\s+active\s+storm\s+surge\s+bulletin\.?$/i.test(String(message || '').trim());
+      const status = ids('stormStatus');
+      status.classList.remove('advisory-safe','advisory-other');
+      status.classList.add(safe ? 'advisory-safe' : 'advisory-other');
+      ids('stormMessage').textContent = message || 'Status unavailable';
+      ids('stormMark').textContent = safe ? '✓' : '!';
+      const eventParts = bulletin ? [bulletin.cyclone ? `Cyclone ${bulletin.cyclone}` : '',bulletin.issuedAt ? `Issued ${bulletin.issuedAt} IST` : ''].filter(Boolean) : [];
+      ids('stormCaption').textContent = safe ? 'Official ITEWS bulletin feed when checked' : eventParts.join(' · ') || 'Official storm surge advice';
+      const link = ids('stormBulletin');
+      if (!safe && bulletin?.url) {
+        link.textContent = `Issued Bulletin-${bulletin.number || 'Latest'} ↗`;
+        link.href = bulletin.url;
+        link.classList.add('is-visible');
+      } else {
+        link.removeAttribute('href');
+        link.classList.remove('is-visible');
+      }
+    }
+    const JOINT_BULLETIN_PAGE_URL = 'https://incois.gov.in/site/services/jointbulletin.jsp';
+    const JOINT_BULLETIN_PREFIX = /^INCOIS\s*[-–—]\s*IMD\s+Joint(?:\s+Special)?\s+Bulletin\s*[-–—:]?\s*(?:Ocean\s+State\s+Forecast\s+associated\s+with\s*[-–—:]?\s*)?/i;
+
+    function compactText(value) {
+      return String(value || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+    }
+
+    function cleanJointBulletinMessage(value) {
+      const original = compactText(value);
+      if (!original) return '';
+      const cleaned = original.replace(JOINT_BULLETIN_PREFIX,'').trim();
+      return cleaned || original;
+    }
+
+    function absoluteIncoisUrl(value) {
+      if (!value) return '';
+      try {
+        return new URL(value, JOINT_BULLETIN_PAGE_URL).href;
+      } catch {
+        return '';
+      }
+    }
+
+    function normalizeJointBulletin(record) {
+      if (!record || typeof record !== 'object') return null;
+      const url = absoluteIncoisUrl(record.url || record.pdfUrl || record.href || record.link);
+      const message = cleanJointBulletinMessage(record.message || record.title || record.description || record.text);
+      const issuedAt = record.issuedAt || record.publishedAt || record.updatedAt || record.date || '';
+      const isRecent = typeof record.isRecent === 'boolean' ? record.isRecent : null;
+      const ok = record.ok !== false;
+      if (!message && !url) return null;
+      return {message:message || 'Latest INCOIS-IMD joint bulletin',url,issuedAt,isRecent,ok};
+    }
+
+    function jointBulletinDate(record) {
+      const explicitDate = record?.issuedAt ? new Date(record.issuedAt) : null;
+      if (explicitDate && !Number.isNaN(explicitDate.getTime())) return explicitDate;
+
+      const filenameTimestamp = String(record?.url || '').match(/joint_(\d{13})(?:\D|$)/i);
+      if (filenameTimestamp) {
+        const inferredDate = new Date(Number(filenameTimestamp[1]));
+        if (!Number.isNaN(inferredDate.getTime())) return inferredDate;
+      }
+      return null;
+    }
+
+    function renderJointBulletin(record) {
+      const bulletin = normalizeJointBulletin(record);
+      const card = ids('jointBulletinCard');
+      const message = ids('jointBulletinMessage');
+      const time = ids('jointBulletinTime');
+      const link = ids('jointBulletinLink');
+      const bulletinDate = jointBulletinDate(bulletin);
+      const computedAge = bulletinDate ? Date.now() - bulletinDate.getTime() : Number.POSITIVE_INFINITY;
+      const computedRecent = computedAge >= 0 && computedAge < 24 * 60 * 60 * 1000;
+      const isRecent = bulletinDate ? computedRecent : Boolean(bulletin?.isRecent);
+
+      card.classList.toggle('is-recent',Boolean(isRecent));
+      message.textContent = bulletin?.message || 'No INCOIS-IMD joint bulletin is currently available.';
+
+      if (bulletinDate) {
+        time.dateTime = bulletinDate.toISOString();
+        time.textContent = `${isRecent ? 'Issued within the past 24 hours' : 'Bulletin time'} · ${bulletinDate.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'})} IST`;
+        time.hidden = false;
+      } else {
+        time.removeAttribute('datetime');
+        time.textContent = '';
+        time.hidden = true;
+      }
+
+      link.href = bulletin?.url || JOINT_BULLETIN_PAGE_URL;
+      link.textContent = 'INCOIS-IMD ↗';
+      link.hidden = false;
+    }
+
+    function renderCyclone(cyclone) {
+      const level = ['yellow','orange','red'].includes(cyclone?.level) ? cyclone.level : 'safe';
+      const status = ids('cycloneStatus');
+      status.classList.remove('level-safe','level-yellow','level-orange','level-red');
+      status.classList.add(`level-${level}`);
+      ids('cycloneMessageTitle').textContent = cyclone?.title || 'No active cyclone advisory';
+      const message = ids('cycloneMessage');
+      message.textContent = cyclone?.message || (level === 'safe' ? 'When checked IMD CAP Alerts feed.' : '');
+      message.hidden = !message.textContent;
+      const issued = ids('cycloneIssued');
+      if (cyclone?.issuedAt) {
+        const issuedDate = new Date(cyclone.issuedAt);
+        issued.dateTime = cyclone.issuedAt;
+        issued.textContent = `Issued ${issuedDate.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'})} IST`;
+      } else {
+        issued.removeAttribute('datetime');
+        issued.textContent = '';
+      }
+    }
+    let activeBathymetryRequest = 0;
+
+    function parseGebcoElevation(payload) {
+      if (payload && typeof payload === 'object') {
+        const candidates = [
+          payload.elevation,
+          payload.value,
+          payload.value_0,
+          payload?.features?.[0]?.properties?.elevation,
+          payload?.features?.[0]?.properties?.value,
+          payload?.features?.[0]?.properties?.value_0
+        ];
+        const match = candidates.map(Number).find(Number.isFinite);
+        if (Number.isFinite(match)) return match;
+      }
+
+      const text = String(payload || '');
+      const patterns = [
+        /value_0\s*[=:]\s*(-?\d+(?:\.\d+)?)/i,
+        /(?:elevation|depth|bathymetry)\s*[=:]\s*(-?\d+(?:\.\d+)?)/i,
+        /Band\s*1\s*(?:Value)?\s*[=:]\s*(-?\d+(?:\.\d+)?)/i,
+        /pixel[_\s-]*value\s*[=:]\s*(-?\d+(?:\.\d+)?)/i
+      ];
+      for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match) return Number(match[1]);
+      }
+      return null;
+    }
+
+    async function fetchGebcoElevation(latitude, longitude) {
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+      const delta = 0.005;
+      const common = {
+        service: 'WMS',
+        version: '1.1.1',
+        request: 'GetFeatureInfo',
+        layers: 'gebco_latest',
+        query_layers: 'gebco_latest',
+        styles: '',
+        format: 'image/png',
+        srs: 'EPSG:4326',
+        bbox: `${longitude - delta},${latitude - delta},${longitude + delta},${latitude + delta}`,
+        width: '101',
+        height: '101',
+        x: '50',
+        y: '50',
+        feature_count: '1'
+      };
+
+      for (const infoFormat of ['application/json', 'text/plain', 'text/html']) {
+        const params = new URLSearchParams({...common, info_format: infoFormat});
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        try {
+          const response = await fetch(`https://wms.gebco.net/mapserv?${params}`, {
+            cache: 'no-store',
+            signal: controller.signal
+          });
+          if (!response.ok) continue;
+          const contentType = response.headers.get('content-type') || '';
+          const payload = contentType.includes('json') ? await response.json() : await response.text();
+          const elevation = parseGebcoElevation(payload);
+          if (Number.isFinite(elevation)) return elevation;
+        } catch (error) {
+          if (error?.name !== 'AbortError') console.warn('GEBCO bathymetry lookup failed:', error);
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+      return null;
+    }
+
+    async function updateTectonicSetting(latitude, longitude, topoBathy, requestId, savedBathymetry, savedSetting, savedElevation) {
+      const settingElement = ids('eventSetting');
+      const bathymetryElement = ids('eventBathymetry');
+      const normalizedSavedSetting = String(savedSetting || '').trim().toUpperCase();
+      const savedDepth = savedBathymetry === '' || savedBathymetry == null
+        ? Number.NaN
+        : Number(savedBathymetry);
+      const storedElevation = savedElevation === '' || savedElevation == null
+        ? Number.NaN
+        : Number(savedElevation);
+      const explicitlyLand = normalizedSavedSetting === 'LAND' ||
+        (/\bon\s+land\b|\bland\b/i.test(topoBathy) && !/island/i.test(topoBathy));
+
+      if (explicitlyLand || (Number.isFinite(storedElevation) && storedElevation >= 0)) {
+        settingElement.textContent = 'Tectonic Setting: LAND';
+        bathymetryElement.textContent = 'Bathymetry: NIL';
+        bathymetryElement.title = 'Land setting; bathymetry is not applicable.';
+        return;
+      }
+
+      if (Number.isFinite(savedDepth) && savedDepth > 0) {
+        settingElement.textContent = 'Tectonic Setting: OCEANIC / MARINE';
+        bathymetryElement.textContent = `Bathymetry: ${Math.round(savedDepth).toLocaleString('en-IN')} m`;
+        bathymetryElement.title = 'Bathymetry obtained by the scheduled GEBCO point query.';
+        return;
+      }
+
+      if (Number.isFinite(storedElevation) && storedElevation < 0) {
+        settingElement.textContent = 'Tectonic Setting: OCEANIC / MARINE';
+        bathymetryElement.textContent = `Bathymetry: ${Math.round(Math.abs(storedElevation)).toLocaleString('en-IN')} m`;
+        bathymetryElement.title = `Stored GEBCO elevation at the event coordinates: ${Math.round(storedElevation)} m.`;
+        return;
+      }
+
+      settingElement.textContent = 'Tectonic Setting: OCEANIC / MARINE';
+      bathymetryElement.textContent = Number.isFinite(latitude) && Number.isFinite(longitude)
+        ? 'Bathymetry: loading…'
+        : 'Bathymetry: unavailable';
+      bathymetryElement.title = 'GEBCO WMS point value at the event latitude and longitude.';
+
+      const elevation = await fetchGebcoElevation(latitude, longitude);
+      if (requestId !== activeBathymetryRequest) return;
+
+      if (!Number.isFinite(elevation)) {
+        bathymetryElement.textContent = 'Bathymetry: unavailable';
+        bathymetryElement.title = 'The GEBCO WMS point query did not return a usable value.';
+        return;
+      }
+
+      if (elevation >= 0) {
+        settingElement.textContent = 'Tectonic Setting: LAND';
+        bathymetryElement.textContent = 'Bathymetry: NIL';
+        bathymetryElement.title = 'GEBCO elevation is at or above mean sea level.';
+        return;
+      }
+
+      settingElement.textContent = 'Tectonic Setting: OCEANIC / MARINE';
+      bathymetryElement.textContent = `Bathymetry: ${Math.round(Math.abs(elevation)).toLocaleString('en-IN')} m`;
+      bathymetryElement.title = `GEBCO elevation at the event coordinates: ${Math.round(elevation)} m.`;
+    }
+
+    function openSeismicDetails(event, bulletin = null) {
+      const magnitude = bulletin?.magnitude || event?.MAGNITUDE || event?.magnitude || '—';
+      const location = bulletin?.location || event?.REGIONNAME || event?.region || 'Location unavailable';
+      const depth = bulletin?.depth || (event?.DEPTH ?? event?.depth) || '—';
+      const latitudeValue = bulletin?.latitude ?? event?.LATITUDE ?? event?.latitude;
+      const longitudeValue = bulletin?.longitude ?? event?.LONGITUDE ?? event?.longitude;
+      const latitude = latitudeValue === '' || latitudeValue == null ? Number.NaN : Number(latitudeValue);
+      const longitude = longitudeValue === '' || longitudeValue == null ? Number.NaN : Number(longitudeValue);
+      const originDate = bulletin?.originDate || '';
+      const originTime = bulletin?.originTime || event?.ORIGINTIME || event?.originTime || '—';
+      const topoBathy = String(bulletin?.topographyBathymetry || '').trim();
+      const savedBathymetry = event?.bathymetryMeters ?? bulletin?.bathymetryMeters;
+      const savedSetting = event?.tectonicSetting ?? bulletin?.tectonicSetting;
+      const savedElevation = event?.gebcoElevationMeters ?? bulletin?.gebcoElevationMeters;
+      const bathymetryRequestId = ++activeBathymetryRequest;
+      ids('seismicDialogTitle').textContent = `M${magnitude} · ${location}`;
+      ids('seismicDialogMeta').textContent = bulletin?.issuedAt ? `Bulletin-${bulletin.type || bulletin.number || 'Latest'} · Issued ${bulletin.issuedAt}` : 'Earthquake event information';
+      void updateTectonicSetting(latitude, longitude, topoBathy, bathymetryRequestId,savedBathymetry,savedSetting,savedElevation);
+      const facts = [
+        ['Magnitude',`M${magnitude}`],['Depth',String(depth).includes('km') ? depth : `${depth} km`],
+        ['Date',originDate || String(originTime).split(' ')[0] || '—'],['Origin time',originDate ? originTime : String(originTime).replace(/^\d{4}-\d{2}-\d{2}\s*/, '')],
+        ['Latitude',Number.isFinite(latitude) ? `${latitude}°` : '—'],['Longitude',Number.isFinite(longitude) ? `${longitude}°` : '—'],
+        ['Location',location],['Bulletin',bulletin ? `Bulletin-${bulletin.type || bulletin.number || 'Latest'}` : 'Not issued']
+      ];
+      ids('eventFacts').replaceChildren(...facts.map(([label,value]) => {
+        const wrapper=document.createElement('div'); const term=document.createElement('dt'); const detail=document.createElement('dd');
+        term.textContent=label; detail.textContent=value; wrapper.append(term,detail); return wrapper;
+      }));
+      const hasBulletin = Boolean(bulletin);
+      const evaluationSection = ids('eventEvaluation').closest('details');
+      const adviceSection = ids('eventAdvice').closest('details');
+      evaluationSection.hidden = !hasBulletin; adviceSection.hidden = !hasBulletin;
+      ids('eventEvaluation').textContent = bulletin?.message || '';
+      ids('eventAdvice').textContent = bulletin?.advice || 'No advice text was included in this bulletin.';
+      ids('eventUpdates').textContent = bulletin?.updates || '';
+      ids('eventUpdatesSection').hidden = !bulletin?.updates;
+      ids('eventBulletinUnavailable').hidden = hasBulletin;
+      const officialLink = ids('eventBulletinLink');
+      officialLink.hidden = !bulletin?.url;
+      if (bulletin?.url) officialLink.href = bulletin.url; else officialLink.removeAttribute('href');
+      const map = ids('eventMap');
+      const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
+
+      map.hidden = !hasCoordinates;
+      ids('seismicDialog').showModal();
+
+      if (hasCoordinates) {
+        const activeMap = ensureSeismicMap();
+        if (activeMap) {
+          const popupHtml =
+            `<strong>M${magnitude} · ${escapeHtml(location)}</strong><br>` +
+            `LAT ${latitude.toFixed(2)}° · LONG ${longitude.toFixed(2)}°<br>` +
+            `Depth ${escapeHtml(String(depth).includes('km') ? String(depth) : `${depth} km`)}`;
+
+          if (seismicMapMode === 'maptiler') {
+            activeMap.resize();
+            activeMap.jumpTo({center:[longitude,latitude],zoom:SEISMIC_MAP_DEFAULT_ZOOM});
+            if (seismicEpicentreMarker) seismicEpicentreMarker.remove();
+            seismicEpicentreMarker = new maptilersdk.Marker({color:'#c9362b'})
+              .setLngLat([longitude,latitude])
+              .setPopup(new maptilersdk.Popup({offset:18}).setHTML(popupHtml))
+              .addTo(activeMap);
+          } else {
+            activeMap.invalidateSize();
+            activeMap.setView([latitude, longitude], SEISMIC_MAP_DEFAULT_ZOOM, { animate: false });
+            if (seismicEpicentreMarker) seismicEpicentreMarker.remove();
+            const earthquakeIcon = L.divIcon({
+              className: '',
+              html: '<div class="earthquake-leaflet-marker"></div>',
+              iconSize: [22,22],
+              iconAnchor: [11,11]
+            });
+            seismicEpicentreMarker = L.marker([latitude, longitude], {
+              icon: earthquakeIcon,
+              keyboard: false,
+              title: `M${magnitude} earthquake · ${location}`
+            }).addTo(activeMap);
+            seismicEpicentreMarker.bindPopup(popupHtml);
+          }
+          marker.openPopup();
+        }
+      }
+    }
+    function render(data) {
+      const checkedAtValue = data.lastAttemptAt || data.updatedAt;
+      const checkedAt = checkedAtValue ? new Date(checkedAtValue) : null;
+      if (checkedAt && !Number.isNaN(checkedAt.getTime())) {
+        ids('lastUpdated').dateTime = checkedAtValue;
+        ids('lastUpdated').textContent = `Last checked ${checkedAt.toLocaleString('en-IN',{dateStyle:'long',timeStyle:'short',timeZone:'Asia/Kolkata'})} IST`;
+      } else {
+        ids('lastUpdated').removeAttribute('datetime');
+        ids('lastUpdated').textContent = 'No source check available';
+      }
+      const demoMode = new URLSearchParams(location.search).get('demo');
+      const bulletinTwoDemo = {
+        type: 'II',
+        number: 2,
+        magnitude: '6.7',
+        location: 'Kyushu, Japan',
+        originDate: '28 Jul 2026',
+        originTime: '1257 IST',
+        message: 'Based on the model results there is possibility of Tsunami. ITEWC INCOIS will monitor sea level changes near epicentral region and report in case of tsunami threat.',
+        url: '#demo-bulletin-ii'
+      };
+      const originText = data.seismic.latest?.ORIGINTIME;
+      const originTime = originText ? new Date(`${String(originText).replace(' ','T')}+05:30`) : null;
+      const seismicAge = checkedAt && originTime && !Number.isNaN(originTime.getTime()) ? checkedAt.getTime() - originTime.getTime() : Number.POSITIVE_INFINITY;
+      const isRecentSeismic = demoMode === 'recent' || (seismicAge >= 0 && seismicAge <= 24 * 60 * 60 * 1000);
+      const demoBulletin = demoMode === 'bulletin2' ? bulletinTwoDemo : null;
+      const relatedBulletin = isRecentSeismic ? data.tsunami.recentBulletin : null;
+      renderTsunami(demoBulletin?.message || data.tsunami.message,demoBulletin || data.tsunami.bulletin,relatedBulletin);
+      const latestSeismicLink = ids('seismicMessage');
+      latestSeismicLink.textContent = data.seismic.message;
+      latestSeismicLink.disabled = !data.seismic.latest;
+      latestSeismicLink.onclick = data.seismic.latest ? () => openSeismicDetails(data.seismic.latest,data.tsunami.recentBulletin) : null;
+      ids('seismicMessageWrap').classList.toggle('is-recent',isRecentSeismic);
+      ids('seismicAdditional').replaceChildren(...(data.seismic.recentEvents || []).map(event => {
+        const item = document.createElement('button'); item.type = 'button'; item.className = 'seismic-event-link';
+        item.textContent = `Also: M${event.magnitude}, ${event.region}, ${event.originTime}, depth ${event.depth} km`;
+        item.addEventListener('click',() => openSeismicDetails(event,event.bulletin));
+        return item;
+      }));
+      const stormDemoBulletin = demoMode === 'storm' ? data.stormSurge.recentBulletin : null;
+      renderStormSurge(stormDemoBulletin?.message || data.stormSurge.message,stormDemoBulletin || data.stormSurge.bulletin);
+      ids('highWaveIssueDate').textContent = `Issue date ${data.highWave.issueDate || '—'}`;
+      ids('swellIssueDate').textContent = `Issue date ${data.swellSurge.issueDate || '—'}`;
+      renderSeverityBoard('highWaveStates','High Wave',data.highWave);
+      renderSeverityBoard('swellStates','Swell Surge',data.swellSurge);
+      ids('currentIssueDate').textContent = `Issue date ${data.oceanCurrent?.issueDate || '—'}`;
+      renderSeverityBoard('currentStates','Ocean Currents',data.oceanCurrent || {});
+      ids('pfzDate').textContent = `Forecast ${data.pfz.forecastDate || '—'} · Valid through ${data.pfz.validUntil || '—'}`;
+      renderPfzSectors(data.pfz.sectors);
+      renderCyclone(data.cyclone);
+      renderJointBulletin(data?.jointBulletin || data?.cyclone?.jointBulletin);
+      const sourceLabels = { 'high wave/swell':'OSF', 'ocean current':'OSF', pfz:'PFZ', seismic:'ITEWS', tsunami:'ITEWS', 'storm surge':'ITEWS', cyclone:'IMD', 'joint bulletin':'INCOIS-IMD' };
+      const failedSources = [...new Set((data.errors || []).map(error => sourceLabels[String(error).split(':',1)[0].trim().toLowerCase()] || 'SOURCE'))];
+      const updateState = ids('updateState');
+      updateState.textContent = failedSources.length ? `Error: ${failedSources.join('/')} not updated — unable to connect` : 'All sources checked successfully';
+      updateState.classList.toggle('footer-error',failedSources.length > 0);
+    }
+    let statusRefreshTimer;
+    function scheduleStatusRefresh(data, retryDelay = 0) {
+      clearTimeout(statusRefreshTimer);
+      const intervalMs = Math.max(60000,Number(data?.updateIntervalHours || 0.25) * 3600000);
+      const baseTime = new Date(data?.updatedAt || data?.lastAttemptAt || Date.now()).getTime();
+      const now = Date.now();
+      const nextUpdate = Number.isFinite(baseTime)
+        ? baseTime + (Math.floor(Math.max(0,now - baseTime) / intervalMs) + 1) * intervalMs
+        : now + intervalMs;
+      const delay = retryDelay || Math.max(1000,nextUpdate - now + 5000);
+      const previousUpdate = data?.updatedAt;
+      statusRefreshTimer = setTimeout(async () => {
+        try {
+          const fresh = await loadStatus();
+          if (previousUpdate && fresh?.updatedAt === previousUpdate) scheduleStatusRefresh(fresh,60000);
+        } catch {
+          statusRefreshTimer = setTimeout(()=>loadStatus().catch(()=>{}),60000);
+        }
+      },delay);
+    }
+    async function loadStatus(url='status.json') { const response = await fetch(`${url}?t=${Date.now()}`,{cache:'no-store'}); if(!response.ok) throw new Error('Status unavailable'); const data=await response.json(); render(data); scheduleStatusRefresh(data); return data; }
+    loadStatus().catch(()=>ids('updateState').textContent='Saved status is temporarily unavailable');
+    window.addEventListener('pageshow',()=>loadStatus().catch(()=>{}));
+    document.addEventListener('visibilitychange',()=>{ if (!document.hidden) loadStatus().catch(()=>{}); });
+    function wireDialog(dialogId, closeButtonId) {
+      const dialog = ids(dialogId);
+      const closeButton = ids(closeButtonId);
+      if (!dialog || !closeButton) return;
+
+      closeButton.addEventListener('click', () => dialog.close());
+      dialog.addEventListener('click', event => {
+        if (event.target === dialog) dialog.close();
+      });
+      dialog.addEventListener('cancel', event => {
+        event.preventDefault();
+        dialog.close();
+      });
+    }
+    wireDialog('advisoryDialog','advisoryDialogClose');
+    wireDialog('seismicDialog','seismicDialogClose');
+    wireDialog('shareDialog','shareDialogClose');
+    window.addEventListener('focus',()=>loadStatus().catch(()=>{}));
+    window.addEventListener('offline',()=>{ ids('updateState').textContent='Offline · showing last saved snapshot'; });
+    window.addEventListener('online',()=>loadStatus().catch(()=>{}));
+    if ('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=21',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{}));
+  </script>
+</body>
+</html>
