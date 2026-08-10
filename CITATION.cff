@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use iNGenDNS DNS Optimizer, please cite it using the metadata in this file."
+type: software
+title: "iNGenDNS DNS Optimizer"
+abstract: "An Android application that benchmarks DNS resolvers and identifies reliable, low-latency options for the active network."
+authors:
+  - family-names: "K"
+    given-names: "Dinesh"
+    email: "pkmdinesh@outlook.com"
+repository-code: "https://github.com/pkmdinesh/iNGenDNS"
+url: "https://github.com/pkmdinesh/iNGenDNS"
+license: "GPL-3.0-only"
+keywords:
+  - Android
+  - Kotlin
+  - DNS
+  - DNS benchmark
+  - DNS optimizer
+  - network diagnostics
